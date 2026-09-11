@@ -1,0 +1,233 @@
+:root {
+  --sw-gold: #ffe81f;
+  --sw-blue: #4bc4ff;
+  --sw-bg-dark: #05070d;
+}
+
+/* ---- Base theme ----
+   Uses the system font stack (no external @import/link) so the page has
+   nothing to wait on before it can render — a webfont round-trip was adding
+   real, avoidable load time here. */
+body {
+  background: radial-gradient(circle at top, #0d1b2a 0%, #000000 70%);
+  color: #e0e0e0;
+  min-height: 100vh;
+  font-family: -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* ---- Inline SVG icons on buttons ----
+   Self-contained (no icon-font CDN) — sized to sit neatly next to text and
+   colored via currentColor so they follow each button's normal/hover/active
+   text color automatically. */
+.btn-icon {
+  width: 1em;
+  height: 1em;
+  flex-shrink: 0;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ---- Navbar / banner ---- */
+.navbar {
+  background: linear-gradient(90deg, #000000, #1a1a2e) !important;
+  border-bottom: 2px solid var(--sw-gold);
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+}
+
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.brand-logo {
+  height: 34px;
+  width: 34px;
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 6px rgba(255, 232, 31, 0.55));
+}
+
+.brand-text {
+  font-family: -apple-system, 'Segoe UI', Roboto, sans-serif;
+  text-transform: uppercase;
+  color: var(--sw-gold) !important;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-shadow: 0 0 8px rgba(255, 232, 31, 0.6);
+  font-size: 1.15rem;
+}
+
+@media (max-width: 400px) {
+  .brand-text {
+    font-size: 0.9rem;
+    letter-spacing: 1.5px;
+  }
+  .brand-logo {
+    height: 28px;
+    width: 28px;
+  }
+}
+
+/* ---- Tabs ---- */
+#resource-tabs {
+  flex-wrap: wrap;
+  row-gap: 0.5rem;
+}
+
+#resource-tabs .nav-link {
+  cursor: pointer;
+  color: #cfcfcf;
+  border: 1px solid transparent;
+  transition: all 0.25s ease;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+#resource-tabs .nav-link:hover {
+  color: var(--sw-gold);
+  border-color: var(--sw-gold);
+}
+
+#resource-tabs .nav-link.active {
+  background-color: var(--sw-gold) !important;
+  color: #000 !important;
+  font-weight: 700;
+  box-shadow: 0 0 12px rgba(255, 232, 31, 0.7);
+}
+
+#resource-tabs .nav-link:focus-visible {
+  outline: 2px solid var(--sw-blue);
+  outline-offset: 2px;
+}
+
+/* ---- Status line ---- */
+#status {
+  min-height: 1.5em;
+  transition: opacity 0.3s ease;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+#status:empty::before {
+  content: '';
+}
+
+#status.is-error {
+  color: #ff6b6b;
+}
+
+/* ---- Cards ---- */
+.card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 232, 31, 0.2);
+  color: #e0e0e0;
+  backdrop-filter: blur(4px);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  animation: fadeInUp 0.4s ease both;
+}
+
+.card:hover {
+  transform: translateY(-6px);
+  border-color: var(--sw-gold);
+  box-shadow: 0 8px 24px rgba(255, 232, 31, 0.25);
+}
+
+.card-title {
+  text-transform: uppercase;
+  color: var(--sw-gold);
+  font-family: -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: 0.5px;
+}
+
+.card-text {
+  color: #cfcfcf;
+}
+
+/* Stagger card entrance slightly per column position */
+.row > div:nth-child(1) .card { animation-delay: 0.02s; }
+.row > div:nth-child(2) .card { animation-delay: 0.06s; }
+.row > div:nth-child(3) .card { animation-delay: 0.10s; }
+.row > div:nth-child(4) .card { animation-delay: 0.14s; }
+.row > div:nth-child(5) .card { animation-delay: 0.18s; }
+.row > div:nth-child(6) .card { animation-delay: 0.22s; }
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ---- Entity picker dropdown ---- */
+.form-select {
+  background-color: #12121f;
+  color: #e0e0e0;
+  border: 1px solid rgba(255, 232, 31, 0.4);
+  min-width: 180px;
+}
+
+.form-select:focus {
+  border-color: var(--sw-gold);
+  box-shadow: 0 0 0 0.2rem rgba(255, 232, 31, 0.25);
+}
+
+/* ---- Details modal ---- */
+.modal-content {
+  background-color: #0d0d17;
+  color: #e0e0e0;
+  border: 1px solid var(--sw-gold);
+}
+
+.modal-header,
+.modal-footer {
+  border-color: rgba(255, 232, 31, 0.3);
+}
+
+.modal-title {
+  font-family: -apple-system, 'Segoe UI', Roboto, sans-serif;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--sw-gold);
+  letter-spacing: 0.5px;
+}
+
+.modal .btn-close {
+  filter: invert(1);
+}
+
+.modal dl dt {
+  color: var(--sw-gold);
+  font-weight: 600;
+}
+
+.modal dl dd {
+  color: #cfcfcf;
+}
+
+/* ---- Small-screen tweaks beyond Bootstrap's own grid behavior ---- */
+@media (max-width: 576px) {
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  #resource-tabs .nav-link {
+    font-size: 0.85rem;
+    padding: 0.4rem 0.7rem;
+  }
+
+  #entity-picker {
+    width: 100%;
+    min-width: 0;
+  }
+}

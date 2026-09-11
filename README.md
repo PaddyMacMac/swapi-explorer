@@ -1,28 +1,55 @@
 # SWAPI Explorer
 
-A small vanilla-JavaScript app that browses the [Star Wars API](https://swapi.info) —
-characters, films, planets, and starships — using plain ES modules (no framework,
-no build step) and Bootstrap 5 for layout.
+A vanilla JavaScript web application for exploring data from the [Star Wars API](https://swapi.info).
 
-## Project structure
+The application allows users to browse **Characters, Films, Planets, and Starships**, view results in a responsive card layout, and open detailed information for individual entities.
 
-```
+Built with **plain JavaScript ES modules**, **Bootstrap 5**, and **Vitest** — with no frontend framework or bundler.
+
+
+## Features
+
+* Browse Characters, Films, Planets, and Starships
+* Responsive card-based layout
+* "Jump to..." dropdown for quickly finding an entity
+* Alphabetically sorted entity selection
+* Detailed information displayed in a modal
+* Loading and error states
+* Responsive design for desktop and mobile
+* Hand-written modal behaviour without requiring Bootstrap's JavaScript bundle
+* Automated tests covering the application's JavaScript modules
+* **99% statement/line coverage and 100% function coverage**
+
+## Technologies
+
+* JavaScript (ES modules)
+* HTML5
+* CSS3
+* Bootstrap 5
+* Node.js
+* Vitest
+* jsdom
+* SWAPI
+
+## Project Structure
+
+```text
 .
-├── index.html            # Entry point — loaded directly in the browser
+├── index.html
 ├── package.json
-├── vitest.config.js      # Vitest config (jsdom environment)
-├── public/               # Static assets served as-is
+├── vitest.config.js
+├── public/
 │   ├── favicon.svg
 │   └── images/
 │       └── logo.svg
 ├── src/
 │   ├── css/
-│   │   └── style.css     # Theme / styling
+│   │   └── style.css
 │   └── js/
-│       ├── api.js        # Talks to SWAPI — fetch only, no DOM
-│       ├── render.js     # Builds DOM from data — no fetching
-│       ├── modal.js      # Minimal show/hide for the details modal
-│       └── app.js        # Wires everything together, handles tab/dropdown/button interactions
+│       ├── api.js
+│       ├── render.js
+│       ├── modal.js
+│       └── app.js
 └── test/
     ├── api.test.js
     ├── render.test.js
@@ -30,146 +57,204 @@ no build step) and Bootstrap 5 for layout.
     └── app.test.js
 ```
 
-There's no bundler — `index.html` loads `src/js/app.js` directly as an ES module
-(`<script type="module">`), which imports the other JS files the same way a
-browser would. `public/` holds files that aren't imported by JS but are
-referenced directly (favicon, logo image).
+### JavaScript modules
 
-## Requirements
+* **`api.js`** — Handles API requests and contains no DOM logic.
+* **`render.js`** — Converts application data into DOM elements and contains no API requests.
+* **`modal.js`** — Handles opening and closing the details modal.
+* **`app.js`** — Connects the application together and handles user interactions.
 
-- [Node.js](https://nodejs.org) 18+ (for running tests and the dev server)
-- A modern browser (for the app itself — no Node runtime needed to use it)
+This separation keeps API, rendering, modal behaviour, and application logic relatively independent and easier to test.
 
-## Running the app
+## Getting Started
 
-You need to serve the folder over HTTP rather than opening `index.html`
-directly with `file://`, because ES modules (`type="module"`) are blocked by
-CORS restrictions under the `file://` protocol.
+### Requirements
+
+* Node.js 18+
+* A modern web browser
+
+Node.js is required for running the development server and tests. The application itself runs in the browser.
+
+### Installation
+
+Clone the repository and install the dependencies:
 
 ```bash
 npm install
+```
+
+### Running the application
+
+```bash
 npm start
 ```
 
-This runs a static server (via `http-server`) over the project root and opens
-the app in your browser. If it doesn't open automatically, visit the URL
-printed in the terminal (typically `http://127.0.0.1:8080`).
+This starts a static HTTP server using `http-server`.
 
-Alternatively, use any static server you like, e.g.:
+If the browser does not open automatically, visit the URL shown in the terminal, typically:
+
+```text
+http://127.0.0.1:8080
+```
+
+The application needs to be served over HTTP rather than opened directly with `file://` because ES modules are restricted when loaded from the local file system.
+
+Alternatively, you can use another static server:
 
 ```bash
 npx serve .
-# or
+```
+
+or:
+
+```bash
 python3 -m http.server 8080
 ```
 
-## Features
+## Testing
 
-- **Tabs** — switch between Characters, Films, Planets, and Starships.
-- **Card grid** — a quick-glance summary of every item in the current resource.
-- **"Jump to…" dropdown + View details button** — next to the tabs, the
-  dropdown is prepopulated with every item's name/title in **alphabetical
-  order** for the currently loaded resource. Pick one, then click
-  **View details** to open a modal with that entity's full details (fields
-  the card grid doesn't have room for — e.g. a starship's cargo capacity, a
-  planet's gravity and rotation period, a film's opening crawl). The button
-  stays disabled until something is selected, and re-disables whenever you
-  switch tabs and the dropdown resets.
+Tests are written using **Vitest** and run against a simulated DOM provided by **jsdom**.
 
-The modal itself is a small hand-rolled show/hide (`src/js/modal.js`) that
-reuses Bootstrap's CSS classes (`.modal`, `.show`, `.modal-backdrop`) but
-doesn't depend on Bootstrap's JS bundle — see "Why no Bootstrap JS" below.
-
-## Running the tests
-
-Tests are written with [Vitest](https://vitest.dev) and run against a
-simulated DOM via `jsdom`, since most of the app's modules read/write real
-DOM elements.
+Run the test suite:
 
 ```bash
-npm install
 npm test
 ```
 
-Other test scripts:
+Run tests in watch mode:
 
 ```bash
-npm run test:watch   # re-run on file changes
-npm run coverage     # run tests with a coverage report (text + html)
+npm run test:watch
 ```
 
-Coverage currently sits at **99% statements/lines, 100% functions** across
-`src/js/`. The `html` report is written to `coverage/index.html` — open it in
-a browser for a file-by-file breakdown. `coverage/` is git-ignored since it's
-a generated artifact, not source.
+Generate a coverage report:
 
-### What's covered
+```bash
+npm run coverage
+```
 
-- **`api.test.js`** — `fetchResource` against a mocked `fetch`: correct URL,
-  successful JSON parsing, error thrown on a non-OK response, and network
-  failures propagating.
-- **`render.test.js`** — `renderStatus` (including its error-state class),
-  `getEntityName`, `renderResults` (card count/content per resource type,
-  clearing stale results, empty list), `renderPicker` (alphabetical sorting
-  for both `name`- and `title`-keyed resources, option population, clearing
-  between loads), and `renderDetails` (modal title + full field set per
-  resource type).
-- **`modal.test.js`** — `openModal`/`closeModal` in isolation: class/style/
-  aria toggling, backdrop creation and removal, closing on backdrop click,
-  closing on the Escape key, and safe no-op behavior when called on an
-  already-closed modal.
-- **`app.test.js`** — `loadResource`, `setActiveTab`, `showEntityDetails`,
-  and `initApp` wired together, with `api.js` mocked via `vi.mock`: loading/
-  success/error status messages, dropdown population and clearing, the View
-  details button's disabled state, tab-click behavior, opening the modal via
-  the button, closing it via either close button, and an out-of-range
-  selection being a no-op.
+The coverage report is generated in:
 
-## Responsive design
+```text
+coverage/index.html
+```
 
-The layout is responsive out of the box thanks to Bootstrap's grid, with a
-few extra rules layered on top in `src/css/style.css`:
+The current test suite achieves:
 
-- **Card grid** — each card is `col-md-4` inside a `row`. Below the `md`
-  breakpoint (768px) cards **snap to a single column** and stack vertically;
-  at `md` and above they arrange **three per row**. This needs no custom
-  media queries — it's Bootstrap's grid doing its job.
-- **Tabs + dropdown + button row** — the resource tabs and the
-  dropdown/button pair sit in a flex row that **wraps onto multiple lines**
-  on narrow screens instead of overflowing or squashing.
-- **Custom small-screen tweaks** — below 576px, tab padding/font-size
-  shrinks slightly and the dropdown expands to full width, since a
-  fixed-width `<select>` next to wrapped tabs looks cramped on a phone.
-- **Modal** — Bootstrap's modal CSS centers and constrains it to the
-  viewport by default, so entity details remain readable without extra CSS
-  on mobile.
+* **99% statements/lines**
+* **100% functions**
 
-In short: resize the browser (or open it on a phone) and the card grid will
-snap from three columns down to one, the controls row will wrap, and
-everything stays usable without horizontal scrolling.
+The generated `coverage/` directory is excluded from Git because it is a build artifact rather than source code.
 
-## Why no Bootstrap JS
+## Test Coverage
 
-An earlier version of this app loaded `bootstrap.bundle.min.js` from a CDN
-purely to drive the details modal. In practice that's a real cost for a
-small gain: it's a render-blocking `<script>` that has to be fetched before
-the page finishes loading, and if that CDN request is slow or blocked
-(corporate proxy, offline dev environment, etc.) the whole page stalls and
-the modal silently never works, with no error shown.
+### `api.test.js`
 
-Since Bootstrap's CSS already defines everything the modal *looks* like
-(`.modal`, `.show`, `.modal-backdrop`, `.fade`), the only thing actually
-missing without the JS bundle is toggling a few classes and building a
-backdrop element — about 30 lines, now living in `src/js/modal.js` with no
-external dependency. The same reasoning applies to the fonts: an earlier
-version pulled in Google Fonts via a CSS `@import`, which is a
-render-blocking network round-trip of its own. The current CSS uses the
-system font stack instead, so the page has nothing to wait on before it can
-render.
+Tests API behaviour including:
 
-## Notes on the visual design
+* Successful requests
+* JSON parsing
+* Non-OK HTTP responses
+* Network failures
 
-The banner logo and favicon (`public/images/logo.svg`, `public/favicon.svg`)
-are original SVG artwork created for this project — not the Lucasfilm/Star
-Wars trademark logo — styled to fit the app's dark, gold-accented theme,
-which also adds hover/entrance animations on cards.
+### `render.test.js`
+
+Tests rendering functionality including:
+
+* Status messages
+* Error states
+* Entity name handling
+* Card rendering
+* Empty results
+* Clearing previous results
+* Alphabetical sorting
+* Dropdown population
+* Entity detail rendering
+
+### `modal.test.js`
+
+Tests modal behaviour including:
+
+* Opening and closing
+* ARIA attributes
+* Backdrop creation and removal
+* Backdrop-click closing
+* Escape-key closing
+* Safe behaviour when the modal is already closed
+
+### `app.test.js`
+
+Tests application behaviour including:
+
+* Resource loading
+* Tab switching
+* Entity selection
+* Error and success states
+* Dropdown behaviour
+* Button disabled/enabled states
+* Opening and closing the modal
+* Handling invalid selections
+
+## Responsive Design
+
+The application uses Bootstrap's responsive grid alongside custom CSS.
+
+* Cards display three per row on medium and larger screens.
+* Cards stack into a single column on smaller screens.
+* Navigation controls wrap on narrow screens.
+* The entity dropdown expands to the available width on very small screens.
+* Modal content remains constrained to the viewport.
+
+The layout is designed to remain usable across desktop, tablet, and mobile screen sizes.
+
+## Design Decisions
+
+### Why no Bootstrap JavaScript?
+
+The application uses Bootstrap's CSS for the modal styling but does not depend on Bootstrap's JavaScript bundle.
+
+The modal behaviour is implemented in `modal.js`, which handles the small amount of functionality required:
+
+* Toggling modal visibility
+* Managing ARIA attributes
+* Creating and removing the backdrop
+* Closing via backdrop clicks
+* Closing via the Escape key
+
+This removes an unnecessary JavaScript dependency for a relatively small piece of functionality.
+
+### Performance considerations
+
+The application avoids unnecessary external dependencies where possible.
+
+An earlier version used Google Fonts through CSS `@import`. The current version uses the system font stack instead, avoiding an additional external network request before the page can render.
+
+## Visual Design
+
+The project includes original SVG artwork for the application logo and favicon.
+
+The interface uses a dark theme with gold accents and includes hover and entrance animations for cards.
+
+The artwork is original project artwork and is not intended to reproduce the official Lucasfilm/Star Wars trademark logo.
+
+## What This Project Demonstrates
+
+This project demonstrates:
+
+* Working with a third-party REST API
+* Asynchronous JavaScript and `fetch`
+* ES modules and separation of concerns
+* DOM manipulation
+* Responsive web design
+* Accessibility considerations such as ARIA attributes and keyboard interaction
+* Error and loading-state handling
+* Automated unit/integration testing
+* Mocking API requests with Vitest
+* DOM testing with jsdom
+* Test coverage and maintainable project structure
+
+## Author
+
+**Paddy Mac**
+
+[GitHub](https://github.com/PaddyMacMac)

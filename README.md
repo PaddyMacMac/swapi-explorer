@@ -6,6 +6,10 @@ The application allows users to browse **Characters, Films, Planets, and Starshi
 
 Built with **plain JavaScript ES modules**, **Bootstrap 5**, and **Vitest** — with no frontend framework or bundler.
 
+## Preview
+
+![SWAPI Explorer](public/images/screenshot.png)
+
 ## Demo
 
 [View SWAPI Explorer](https://paddymacmac.github.io/swapi-explorer/)

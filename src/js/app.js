@@ -1,5 +1,5 @@
 // app.js — wires everything together. Calls api.js, hands data to render.js.
-import { fetchResource } from './api.js';
+import { fetchFromSwapi } from './api.js';
 import { renderStatus, renderResults, renderPicker, renderDetails } from './render.js';
 import { openModal, closeModal } from './modal.js';
 
@@ -13,7 +13,7 @@ export const loadResource = async (resource) => {
   currentResource = resource;
   renderStatus(`Loading ${resource}...`);
   try {
-    const data = await fetchResource(resource);
+    const data = await fetchFromSwapi(resource);
     currentItems = renderPicker(data, resource);
     renderResults(data, resource);
     renderStatus(`Showing ${data.length} ${resource}`);

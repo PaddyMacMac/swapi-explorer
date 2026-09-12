@@ -2,10 +2,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('../src/js/api.js', () => ({
-  fetchResource: vi.fn(),
+  fetchFromSwapi: vi.fn(),
 }));
 
-import { fetchResource } from '../src/js/api.js';
+import { fetchFromSwapi } from '../src/js/api.js';
 import { loadResource, setActiveTab, initApp, showEntityDetails, getCurrentItems } from '../src/js/app.js';
 
 const setUpDom = () => {
@@ -32,11 +32,11 @@ const setUpDom = () => {
 describe('loadResource', () => {
   beforeEach(() => {
     setUpDom();
-    fetchResource.mockReset();
+    fetchFromSwapi.mockReset();
   });
 
   it('shows a loading message, then a success message with the item count', async () => {
-    fetchResource.mockResolvedValue([{ name: 'Yoda', height: '66', mass: '17', birth_year: '896BBY' }]);
+    fetchFromSwapi.mockResolvedValue([{ name: 'Yoda', height: '66', mass: '17', birth_year: '896BBY' }]);
 
     const promise = loadResource('people');
     expect(document.getElementById('status').textContent).toBe('Loading people...');
@@ -48,7 +48,7 @@ describe('loadResource', () => {
   });
 
   it('shows an error message when the fetch rejects', async () => {
-    fetchResource.mockRejectedValue(new Error('SWAPI request failed: 500'));
+    fetchFromSwapi.mockRejectedValue(new Error('SWAPI request failed: 500'));
 
     await loadResource('films');
 
@@ -56,7 +56,7 @@ describe('loadResource', () => {
   });
 
   it('populates the dropdown alphabetically and clears it on error', async () => {
-    fetchResource.mockResolvedValue([{ name: 'Yoda' }, { name: 'Chewbacca' }]);
+    fetchFromSwapi.mockResolvedValue([{ name: 'Yoda' }, { name: 'Chewbacca' }]);
     await loadResource('people');
 
     const options = document.querySelectorAll('#entity-picker option');
@@ -64,7 +64,7 @@ describe('loadResource', () => {
     expect(options[2].textContent).toBe('Yoda');
     expect(getCurrentItems().map(p => p.name)).toEqual(['Chewbacca', 'Yoda']);
 
-    fetchResource.mockRejectedValue(new Error('boom'));
+    fetchFromSwapi.mockRejectedValue(new Error('boom'));
     await loadResource('films');
 
     expect(getCurrentItems()).toEqual([]);
@@ -72,7 +72,7 @@ describe('loadResource', () => {
 
   it('disables the View details button on every fresh load', async () => {
     document.getElementById('view-details-btn').disabled = false;
-    fetchResource.mockResolvedValue([{ name: 'Yoda' }]);
+    fetchFromSwapi.mockResolvedValue([{ name: 'Yoda' }]);
 
     await loadResource('people');
 
@@ -95,8 +95,8 @@ describe('setActiveTab', () => {
 describe('showEntityDetails', () => {
   beforeEach(async () => {
     setUpDom();
-    fetchResource.mockReset();
-    fetchResource.mockResolvedValue([
+    fetchFromSwapi.mockReset();
+    fetchFromSwapi.mockResolvedValue([
       { name: 'Yoda', height: '66', mass: '17', birth_year: '896BBY', gender: 'male', hair_color: 'white', eye_color: 'brown' },
       { name: 'Chewbacca', height: '228', mass: '112', birth_year: '200BBY', gender: 'male', hair_color: 'brown', eye_color: 'blue' },
     ]);
@@ -123,40 +123,40 @@ describe('showEntityDetails', () => {
 describe('initApp', () => {
   beforeEach(() => {
     setUpDom();
-    fetchResource.mockReset();
-    fetchResource.mockResolvedValue([]);
+    fetchFromSwapi.mockReset();
+    fetchFromSwapi.mockResolvedValue([]);
   });
 
   it('loads people on init', () => {
     initApp();
-    expect(fetchResource).toHaveBeenCalledWith('people');
+    expect(fetchFromSwapi).toHaveBeenCalledWith('people');
   });
 
   it('loads the clicked tab resource and updates the active tab', async () => {
     initApp();
-    fetchResource.mockClear();
-    fetchResource.mockResolvedValue([{ title: 'A New Hope', episode_id: 4, director: 'George Lucas', release_date: '1977-05-25' }]);
+    fetchFromSwapi.mockClear();
+    fetchFromSwapi.mockResolvedValue([{ title: 'A New Hope', episode_id: 4, director: 'George Lucas', release_date: '1977-05-25' }]);
 
     const filmsButton = document.querySelector('[data-resource="films"]');
     filmsButton.click();
     await Promise.resolve();
     await Promise.resolve();
 
-    expect(fetchResource).toHaveBeenCalledWith('films');
+    expect(fetchFromSwapi).toHaveBeenCalledWith('films');
     expect(filmsButton.classList.contains('active')).toBe(true);
   });
 
   it('ignores clicks that are not on a tab button', () => {
     initApp();
-    fetchResource.mockClear();
+    fetchFromSwapi.mockClear();
 
     document.getElementById('resource-tabs').click();
 
-    expect(fetchResource).not.toHaveBeenCalled();
+    expect(fetchFromSwapi).not.toHaveBeenCalled();
   });
 
   it('enables the View details button once a dropdown option is picked', async () => {
-    fetchResource.mockResolvedValue([{ name: 'Yoda' }]);
+    fetchFromSwapi.mockResolvedValue([{ name: 'Yoda' }]);
     initApp();
     await Promise.resolve();
     await Promise.resolve();
@@ -172,7 +172,7 @@ describe('initApp', () => {
   });
 
   it('opens the details modal when View details is clicked', async () => {
-    fetchResource.mockResolvedValue([{ name: 'Yoda', height: '66', mass: '17', birth_year: '896BBY' }]);
+    fetchFromSwapi.mockResolvedValue([{ name: 'Yoda', height: '66', mass: '17', birth_year: '896BBY' }]);
     initApp();
     await Promise.resolve();
     await Promise.resolve();
@@ -187,7 +187,7 @@ describe('initApp', () => {
   });
 
   it('closes the modal from either close button', async () => {
-    fetchResource.mockResolvedValue([{ name: 'Yoda' }]);
+    fetchFromSwapi.mockResolvedValue([{ name: 'Yoda' }]);
     initApp();
     await Promise.resolve();
     await Promise.resolve();

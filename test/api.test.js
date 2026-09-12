@@ -1,8 +1,8 @@
-// api.test.js — fetchResource against a mocked global fetch.
+// api.test.js — fetchFromSwapi against a mocked global fetch.
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { fetchResource } from '../src/js/api.js';
+import { fetchFromSwapi } from '../src/js/api.js';
 
-describe('fetchResource', () => {
+describe('fetchFromSwapi', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
   });
@@ -12,7 +12,7 @@ describe('fetchResource', () => {
     const mockFetch = vi.fn().mockResolvedValue({ ok: true, json: mockJson });
     vi.stubGlobal('fetch', mockFetch);
 
-    await fetchResource('people');
+    await fetchFromSwapi('people');
 
     expect(mockFetch).toHaveBeenCalledWith('https://swapi.info/api/people');
   });
@@ -24,7 +24,7 @@ describe('fetchResource', () => {
       json: vi.fn().mockResolvedValue(people),
     }));
 
-    const result = await fetchResource('people');
+    const result = await fetchFromSwapi('people');
 
     expect(result).toEqual(people);
   });
@@ -36,12 +36,12 @@ describe('fetchResource', () => {
       json: vi.fn(),
     }));
 
-    await expect(fetchResource('unknown')).rejects.toThrow('SWAPI request failed: 404');
+    await expect(fetchFromSwapi('unknown')).rejects.toThrow('SWAPI request failed: 404');
   });
 
   it('propagates network-level rejections from fetch itself', async () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('network down')));
 
-    await expect(fetchResource('films')).rejects.toThrow('network down');
+    await expect(fetchFromSwapi('films')).rejects.toThrow('network down');
   });
 });

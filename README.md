@@ -1,10 +1,8 @@
 # SWAPI Explorer
 
-A vanilla JavaScript web application for exploring data from the [Star Wars API](https://swapi.info).
+A small vanilla JavaScript application for exploring data from the [SWAPI](https://swapi.info).
 
-The application allows users to browse **Characters, Films, Planets, and Starships**, view results in a responsive card layout, and open detailed information for individual entities.
-
-Built with **plain JavaScript ES modules**, **Bootstrap 5**, and **Vitest** — with no frontend framework or bundler.
+Browse **Characters, Films, Planets and Starships**, see the API results as cards, and click any card to open a detailed record.
 
 ## Preview
 
@@ -38,230 +36,190 @@ Built with **plain JavaScript ES modules**, **Bootstrap 5**, and **Vitest** — 
 * jsdom
 * SWAPI
 
-## Project Structure
 
-```text
-.
-├── index.html
-├── package.json
-├── vitest.config.js
-├── public/
-│   ├── favicon.svg
-│   └── images/
-│       └── logo.svg
-├── src/
-│   ├── css/
-│   │   └── style.css
-│   └── js/
-│       ├── api.js
-│       ├── render.js
-│       ├── modal.js
-│       └── app.js
-└── test/
-    ├── api.test.js
-    ├── render.test.js
-    ├── modal.test.js
-    └── app.test.js
-```
-
-### JavaScript modules
-
-* **`api.js`** — Handles API requests and contains no DOM logic.
-* **`render.js`** — Converts application data into DOM elements and contains no API requests.
-* **`modal.js`** — Handles opening and closing the details modal.
-* **`app.js`** — Connects the application together and handles user interactions.
-
-This separation keeps API, rendering, modal behaviour, and application logic relatively independent and easier to test.
-
-## Getting Started
+## Getting started
 
 ### Requirements
 
-* Node.js 18+
-* A modern web browser
+- Node.js 18+
+- A modern browser
 
-Node.js is required for running the development server and tests. The application itself runs in the browser.
-
-### Installation
-
-Clone the repository and install the dependencies:
+### Install
 
 ```bash
 npm install
 ```
 
-### Running the application
+### Start
 
 ```bash
 npm start
 ```
 
-This starts a static HTTP server using `http-server`.
+The project uses a small Node standard-library server, so `npm start` does not download a separate HTTP server package.
 
-If the browser does not open automatically, visit the URL shown in the terminal, typically:
+Open:
 
 ```text
 http://127.0.0.1:8080
 ```
 
-The application needs to be served over HTTP rather than opened directly with `file://` because ES modules are restricted when loaded from the local file system.
+To use another port on Windows PowerShell:
 
-Alternatively, you can use another static server:
-
-```bash
-npx serve .
+```powershell
+$env:PORT=8081; npm start
 ```
 
-or:
-
-```bash
-python3 -m http.server 8080
-```
+The application must be served over HTTP because browser ES modules are restricted when loaded directly with `file://`.
 
 ## Testing
 
-Tests are written using **Vitest** and run against a simulated DOM provided by **jsdom**.
-
-Run the test suite:
+Run the complete test suite:
 
 ```bash
 npm test
 ```
 
-Run tests in watch mode:
+Watch tests during development:
 
 ```bash
 npm run test:watch
 ```
 
-Generate a coverage report:
+Generate coverage:
 
 ```bash
 npm run coverage
 ```
 
-The coverage report is generated in:
+Tests use **Vitest** and **jsdom**. The suite covers the domain rules, API boundary, application use cases, rendering, modal behaviour and browser event wiring.
+
+Importantly, the application test verifies the real UI flow: mocked SWAPI data is loaded, cards are rendered into `#results`, and clicking a card opens the details modal with the selected entity.
+
+## Why this design?
+
+The project deliberately uses **plain functional JavaScript** rather than classes or inheritance. The goal is to keep a small application easy to understand while still demonstrating useful architectural boundaries.
 
 ```text
-coverage/index.html
+src/js/
+├── domain/
+│   └── resources.js          # Resource definitions and pure domain rules
+├── application/
+│   └── explorer.js           # Resource loading and selection use cases
+├── infrastructure/
+│   └── swapiClient.js        # SWAPI HTTP boundary
+├── ui/
+│   ├── render.js             # DOM rendering only
+│   └── modal.js              # Modal behaviour only
+└── app.js                    # Composition root and browser events
 ```
 
-The current test suite achieves:
+### Responsibilities
 
-* **99% statements/lines**
-* **100% functions**
+- **Domain** — knows what resources exist, how entities are named and sorted, and which fields are displayed.
+- **Application** — coordinates use cases without knowing about the DOM or `fetch`.
+- **Infrastructure** — knows how to call SWAPI. The client accepts a fetch function, making it easy to test without the network.
+- **UI** — renders data and controls the modal. It does not fetch data or own application state.
+- **`app.js`** — wires the pieces together and translates browser events into use-case calls.
 
-The generated `coverage/` directory is excluded from Git because it is a build artifact rather than source code.
+This is DDD-inspired rather than a full enterprise DDD implementation. A small browser application does not need repositories, aggregates and elaborate domain classes just to satisfy a pattern.
 
-## Test Coverage
+## Clean code choices
 
-### `api.test.js`
+The refactor intentionally favours:
 
-Tests API behaviour including:
+- descriptive names such as `createExplorer`, `getSelectedEntity` and `renderResults`;
+- small functions with one clear responsibility;
+- dependency injection at the infrastructure boundary;
+- configuration instead of repeated resource-specific rendering code;
+- immutable-style operations such as sorting a copy of API results;
+- DOM APIs and `textContent` for external values rather than building HTML strings from API data;
+- one-way flow from API → application → UI;
+- no class hierarchy or inheritance where it would add complexity without value.
 
-* Successful requests
-* JSON parsing
-* Non-OK HTTP responses
-* Network failures
+## User experience
 
-### `render.test.js`
+- Star Wars-inspired dark interface with restrained gold accents.
+- Responsive cards for all four resource types.
+- Every card is clickable and opens its details modal.
+- Cards are also keyboard accessible with **Enter** or **Space**.
+- The **Jump to** control selects a record and enables **View details**.
+- Modal closes with the close buttons, backdrop or **Escape**.
+- Loading and API error states are displayed to the user.
 
-Tests rendering functionality including:
+## Project structure
 
-* Status messages
-* Error states
-* Entity name handling
-* Card rendering
-* Empty results
-* Clearing previous results
-* Alphabetical sorting
-* Dropdown population
-* Entity detail rendering
+```text
+.
+├── index.html
+├── package.json
+├── package-lock.json
+├── vitest.config.js
+├── scripts/
+│   └── server.js
+├── public/
+│   └── images/
+├── src/
+│   ├── css/
+│   │   └── style.css
+│   └── js/
+│       ├── domain/
+│       │   └── resources.js
+│       ├── application/
+│       │   └── explorer.js
+│       ├── infrastructure/
+│       │   └── swapiClient.js
+│       ├── ui/
+│       │   ├── render.js
+│       │   └── modal.js
+│       └── app.js
+└── test/
+    ├── domain.test.js
+    ├── swapiClient.test.js
+    ├── application.test.js
+    ├── render.test.js
+    ├── modal.test.js
+    └── app.test.js
+```
 
-### `modal.test.js`
+## Architecture trade-offs
 
-Tests modal behaviour including:
+### Why functional JavaScript?
 
-* Opening and closing
-* ARIA attributes
-* Backdrop creation and removal
-* Backdrop-click closing
-* Escape-key closing
-* Safe behaviour when the modal is already closed
+The application has little need for mutable objects with identity or inheritance. Functions and closures keep the code shorter and make individual behaviours straightforward to test.
 
-### `app.test.js`
+### Why not create a repository?
 
-Tests application behaviour including:
+The only persistence-like operation is a GET request to SWAPI. Adding a repository abstraction would add another layer without solving a current problem. The HTTP client is already isolated behind a small dependency boundary.
 
-* Resource loading
-* Tab switching
-* Entity selection
-* Error and success states
-* Dropdown behaviour
-* Button disabled/enabled states
-* Opening and closing the modal
-* Handling invalid selections
+### Why keep resource definitions together?
 
-## Responsive Design
+Characters, films, planets and starships have different fields, but their behaviour is structurally the same. A small configuration object avoids four almost-identical renderer implementations while keeping the differences explicit.
 
-The application uses Bootstrap's responsive grid alongside custom CSS.
+### Why is `app.js` still relatively small?
 
-* Cards display three per row on medium and larger screens.
-* Cards stack into a single column on smaller screens.
-* Navigation controls wrap on narrow screens.
-* The entity dropdown expands to the available width on very small screens.
-* Modal content remains constrained to the viewport.
+It acts as the composition root: browser events are connected to application use cases and UI functions there. Business and rendering logic are kept outside it so it does not become a large controller.
 
-The layout is designed to remain usable across desktop, tablet, and mobile screen sizes.
+## What the project demonstrates
 
-## Design Decisions
+- REST API integration with `fetch`
+- ES modules
+- Functional programming techniques
+- Separation of concerns
+- Dependency injection
+- DDD-inspired boundaries
+- Clean code and SOLID principles applied pragmatically
+- DOM manipulation and event delegation
+- Accessibility and keyboard interaction
+- Error/loading states
+- Unit and DOM integration testing
+- Responsive UI design
 
-### Why no Bootstrap JavaScript?
+## API
 
-The application uses Bootstrap's CSS for the modal styling but does not depend on Bootstrap's JavaScript bundle.
+Data is provided by [SWAPI](https://swapi.info). The application currently uses:
 
-The modal behaviour is implemented in `modal.js`, which handles the small amount of functionality required:
-
-* Toggling modal visibility
-* Managing ARIA attributes
-* Creating and removing the backdrop
-* Closing via backdrop clicks
-* Closing via the Escape key
-
-This removes an unnecessary JavaScript dependency for a relatively small piece of functionality.
-
-### Performance considerations
-
-The application avoids unnecessary external dependencies where possible.
-
-An earlier version used Google Fonts through CSS `@import`. The current version uses the system font stack instead, avoiding an additional external network request before the page can render.
-
-## Visual Design
-
-The project includes original SVG artwork for the application logo and favicon.
-
-The interface uses a dark theme with gold accents and includes hover and entrance animations for cards.
-
-The artwork is original project artwork and is not intended to reproduce the official Lucasfilm/Star Wars trademark logo.
-
-## What This Project Demonstrates
-
-This project demonstrates:
-
-* Working with a third-party REST API
-* Asynchronous JavaScript and `fetch`
-* ES modules and separation of concerns
-* DOM manipulation
-* Responsive web design
-* Accessibility considerations such as ARIA attributes and keyboard interaction
-* Error and loading-state handling
-* Automated unit/integration testing
-* Mocking API requests with Vitest
-* DOM testing with jsdom
-* Test coverage and maintainable project structure
-
-## Author
-
-**Paddy Mac**
-
-[GitHub](https://github.com/PaddyMacMac)
+- `/api/people`
+- `/api/films`
+- `/api/planets`
+- `/api/starships`

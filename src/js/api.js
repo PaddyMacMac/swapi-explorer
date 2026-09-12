@@ -3,10 +3,12 @@
 
 const BASE_URL = 'https://swapi.info/api';
 
-export const fetchResource = async (resource) => {
-  const response = await fetch(`${BASE_URL}/${resource}`);
+export const fetchFromSwapi = async (endpoint) => {
+  const response = await fetch(`${BASE_URL}/${endpoint}`);
+
   if (!response.ok) {
     throw new Error(`SWAPI request failed: ${response.status}`);
   }
+
   return response.json();
 };

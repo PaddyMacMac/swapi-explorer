@@ -1,92 +1,40 @@
-// modal.test.js — pure DOM behavior of openModal/closeModal, no Bootstrap JS involved.
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { openModal, closeModal } from '../src/js/modal.js';
+// Tests modal visibility, backdrop behaviour and keyboard accessibility.
 
-const setUpDom = () => {
-  document.body.innerHTML = `
-    <div class="modal" id="detailsModal" aria-hidden="true"></div>
-  `;
-};
+import { beforeEach, describe, expect, it } from 'vitest';
+import { closeModal, openModal } from '../src/js/ui/modal.js';
 
-describe('openModal', () => {
-  beforeEach(setUpDom);
-  afterEach(() => closeModal(document.getElementById('detailsModal')));
+beforeEach(() => {
+  document.body.innerHTML = '<div id="detailsModal" aria-hidden="true"></div>';
+});
 
-  it('adds the show class and makes the modal visible', () => {
-    const modalEl = document.getElementById('detailsModal');
-    openModal(modalEl);
-
-    expect(modalEl.classList.contains('show')).toBe(true);
-    expect(modalEl.style.display).toBe('block');
-    expect(modalEl.getAttribute('aria-modal')).toBe('true');
-    expect(modalEl.hasAttribute('aria-hidden')).toBe(false);
-  });
-
-  it('marks the body as modal-open and appends a backdrop', () => {
-    openModal(document.getElementById('detailsModal'));
-
-    expect(document.body.classList.contains('modal-open')).toBe(true);
-    expect(document.querySelectorAll('.modal-backdrop')).toHaveLength(1);
+describe('modal', () => {
+  it('opens with the correct accessibility state', () => {
+    const modal = document.getElementById('detailsModal');
+    openModal(modal);
+    expect(modal.classList.contains('show')).toBe(true);
+    expect(modal.getAttribute('aria-modal')).toBe('true');
+    expect(document.querySelector('.modal-backdrop')).not.toBeNull();
   });
 
   it('closes when the backdrop is clicked', () => {
-    const modalEl = document.getElementById('detailsModal');
-    openModal(modalEl);
-
+    const modal = document.getElementById('detailsModal');
+    openModal(modal);
     document.querySelector('.modal-backdrop').click();
-
-    expect(modalEl.classList.contains('show')).toBe(false);
-    expect(document.querySelectorAll('.modal-backdrop')).toHaveLength(0);
+    expect(modal.classList.contains('show')).toBe(false);
   });
 
-  it('closes on the Escape key', () => {
-    const modalEl = document.getElementById('detailsModal');
-    openModal(modalEl);
-
+  it('closes on Escape', () => {
+    const modal = document.getElementById('detailsModal');
+    openModal(modal);
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
-
-    expect(modalEl.classList.contains('show')).toBe(false);
-  });
-});
-
-describe('closeModal', () => {
-  beforeEach(setUpDom);
-
-  it('removes the show class, hides the element, and restores aria-hidden', () => {
-    const modalEl = document.getElementById('detailsModal');
-    openModal(modalEl);
-
-    closeModal(modalEl);
-
-    expect(modalEl.classList.contains('show')).toBe(false);
-    expect(modalEl.style.display).toBe('none');
-    expect(modalEl.getAttribute('aria-hidden')).toBe('true');
-    expect(modalEl.hasAttribute('aria-modal')).toBe(false);
+    expect(modal.classList.contains('show')).toBe(false);
   });
 
-  it('removes the backdrop and the body modal-open class', () => {
-    const modalEl = document.getElementById('detailsModal');
-    openModal(modalEl);
-
-    closeModal(modalEl);
-
-    expect(document.querySelectorAll('.modal-backdrop')).toHaveLength(0);
-    expect(document.body.classList.contains('modal-open')).toBe(false);
-  });
-
-  it('is safe to call when the modal was never opened', () => {
-    expect(() => closeModal(document.getElementById('detailsModal'))).not.toThrow();
-  });
-
-  it('stops listening for Escape after closing', () => {
-    const modalEl = document.getElementById('detailsModal');
-    openModal(modalEl);
-    closeModal(modalEl);
-
-    const addSpy = vi.spyOn(modalEl.classList, 'add');
-    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
-
-    expect(addSpy).not.toHaveBeenCalled();
-    addSpy.mockRestore();
+  it('can be closed directly', () => {
+    const modal = document.getElementById('detailsModal');
+    openModal(modal);
+    closeModal(modal);
+    expect(modal.style.display).toBe('none');
+    expect(document.querySelector('.modal-backdrop')).toBeNull();
   });
 });

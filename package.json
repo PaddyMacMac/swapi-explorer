@@ -1,7 +1,7 @@
 {
   "name": "swapi-explorer",
-  "version": "2.0.0",
-  "description": "A small vanilla-JS explorer for the Star Wars API (SWAPI), with a Vitest test suite.",
+  "version": "3.0.0",
+  "description": "A clean, functional vanilla JavaScript explorer for SWAPI.",
   "type": "module",
   "scripts": {
     "start": "npx --yes http-server . -c-1 -o",

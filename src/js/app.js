@@ -1,84 +1,85 @@
-// app.js — wires everything together. Calls api.js, hands data to render.js.
-import { fetchResource } from './api.js';
-import { renderStatus, renderResults, renderPicker, renderDetails } from './render.js';
-import { openModal, closeModal } from './modal.js';
+// Starts the SWAPI Explorer and connects browser events to the application use cases and UI.
 
-// Module-level state: the sorted item list backing the current dropdown, and
-// which resource it belongs to, so the "View details" button click can be
-// mapped back to the right full object and rendered into the modal.
-let currentItems = [];
-let currentResource = 'people';
+import { createExplorer } from './application/explorer.js';
+import { createSwapiClient } from './infrastructure/swapiClient.js';
+import { closeModal, openModal } from './ui/modal.js';
+import { renderDetails, renderPicker, renderResults, renderStatus } from './ui/render.js';
 
-export const loadResource = async (resource) => {
-  currentResource = resource;
-  renderStatus(`Loading ${resource}...`);
+const explorer = createExplorer({ swapiClient: createSwapiClient() });
+
+const getElement = id => document.getElementById(id);
+
+const setActiveTab = resource => {
+  document.querySelectorAll('#resource-tabs [data-resource]').forEach(button => {
+    button.classList.toggle('active', button.dataset.resource === resource);
+  });
+};
+
+const showDetails = index => {
+  const state = explorer.getState();
+  const entity = explorer.getSelectedEntity(index);
+  if (!entity) return;
+
+  renderDetails(entity, state.resource);
+  openModal(getElement('detailsModal'));
+};
+
+export const loadResource = async resource => {
+  renderStatus(`Loading ${resource}…`);
+
   try {
-    const data = await fetchResource(resource);
-    currentItems = renderPicker(data, resource);
-    renderResults(data, resource);
-    renderStatus(`Showing ${data.length} ${resource}`);
-  } catch (err) {
-    currentItems = [];
-    renderStatus(`Error loading ${resource}: ${err.message}`);
+    const entities = await explorer.loadResource(resource);
+    renderResults(entities, resource);
+    renderPicker(entities, resource);
+    getElement('view-details-btn').disabled = true;
+    renderStatus(`Showing ${entities.length} ${resource}`, 'success');
+  } catch (error) {
+    renderResults([], resource);
+    renderPicker([], resource);
+    getElement('view-details-btn').disabled = true;
+    renderStatus(`Error loading ${resource}: ${error.message}`, 'error');
   }
-  // A fresh load resets the dropdown to its placeholder, so the button
-  // should go back to disabled until the user picks something again.
-  const viewBtn = document.getElementById('view-details-btn');
-  if (viewBtn) viewBtn.disabled = true;
 };
 
-export const setActiveTab = (clickedButton) => {
-  document.querySelectorAll('#resource-tabs .nav-link')
-    .forEach(btn => btn.classList.remove('active'));
-  clickedButton.classList.add('active');
-};
-
-// Renders the chosen entity's details into the modal and shows it.
-export const showEntityDetails = (index) => {
-  const item = currentItems[index];
-  if (!item) return;
-
-  renderDetails(item, currentResource);
-  openModal(document.getElementById('detailsModal'));
-};
-
-// Exposed for tests that want to check what the dropdown is currently
-// backed by without reaching into module internals another way.
-export const getCurrentItems = () => currentItems;
-
-// Wires up event listeners and kicks off the initial load. Exported (rather
-// than run automatically at import time) so tests can build the DOM first
-// and call this explicitly against jsdom.
 export const initApp = () => {
-  document.getElementById('resource-tabs').addEventListener('click', (event) => {
+  const tabs = getElement('resource-tabs');
+  const picker = getElement('entity-picker');
+  const viewDetailsButton = getElement('view-details-btn');
+  const results = getElement('results');
+  const modal = getElement('detailsModal');
+
+  tabs.addEventListener('click', event => {
     const button = event.target.closest('[data-resource]');
     if (!button) return;
-    setActiveTab(button);
+    setActiveTab(button.dataset.resource);
     loadResource(button.dataset.resource);
   });
 
-  const picker = document.getElementById('entity-picker');
-  const viewBtn = document.getElementById('view-details-btn');
-
   picker.addEventListener('change', () => {
-    viewBtn.disabled = picker.value === '';
+    viewDetailsButton.disabled = picker.value === '';
   });
 
-  viewBtn.addEventListener('click', () => {
-    showEntityDetails(Number(picker.value));
+  viewDetailsButton.addEventListener('click', () => showDetails(Number(picker.value)));
+
+  results.addEventListener('click', event => {
+    const card = event.target.closest('.entity-card');
+    if (card) showDetails(Number(card.dataset.index));
   });
 
-  const modalEl = document.getElementById('detailsModal');
-  document.getElementById('detailsModalCloseBtn').addEventListener('click', () => closeModal(modalEl));
-  document.getElementById('detailsModalCloseFooterBtn').addEventListener('click', () => closeModal(modalEl));
+  results.addEventListener('keydown', event => {
+    const card = event.target.closest('.entity-card');
+    if (card && (event.key === 'Enter' || event.key === ' ')) {
+      event.preventDefault();
+      showDetails(Number(card.dataset.index));
+    }
+  });
+
+  getElement('detailsModalCloseBtn').addEventListener('click', () => closeModal(modal));
+  getElement('detailsModalCloseFooterBtn').addEventListener('click', () => closeModal(modal));
 
   loadResource('people');
 };
 
-// Auto-init only when actually running in a browser against the real page
-// (i.e. #resource-tabs exists in the loaded document). Under Vitest, the
-// module is imported without that element present, so this is a no-op there
-// and tests call initApp() themselves once they've built their own DOM.
-if (typeof document !== 'undefined' && document.getElementById('resource-tabs')) {
-  initApp();
-}
+if (typeof document !== 'undefined' && getElement('resource-tabs')) initApp();
+
+export { showDetails };

@@ -1,233 +1,270 @@
+/* ==========================================================================
+   SWAPI Explorer — glossy black & gold theme.
+   Flat, rounded surfaces with a bright gold accent and soft glow highlights,
+   rather than angular/clipped panels. Rounded corners throughout, subtle
+   gradients on interactive elements for a "glossy" sheen.
+   ========================================================================== */
+
 :root {
-  --sw-gold: #ffe81f;
-  --sw-blue: #4bc4ff;
-  --sw-bg-dark: #05070d;
+  --bg: #0a0d13;
+  --panel: #131822;
+  --panel-hover: #161c28;
+  --line: rgba(148, 163, 184, 0.16);
+  --line-strong: rgba(148, 163, 184, 0.32);
+
+  --text: #eef1f6;
+  --muted: #97a1b0;
+
+  --gold: #f7c948;
+  --gold-light: #ffe9a8;
+  --gold-dark: #caa036;
+  --gold-soft: rgba(247, 201, 72, 0.12);
+  --gold-line: rgba(247, 201, 72, 0.55);
+  --on-gold: #1a1400;
+
+  --red: #ff6b5e;
+  --green: #55d98a;
+
+  --radius: 10px;
+  --radius-sm: 8px;
+  --radius-lg: 14px;
+
+  --font-display: "Saira Condensed", ui-sans-serif, system-ui, sans-serif;
+  --font-body: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
-/* ---- Base theme ----
-   Uses the system font stack (no external @import/link) so the page has
-   nothing to wait on before it can render — a webfont round-trip was adding
-   real, avoidable load time here. */
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  min-height: 100%;
+  background: var(--bg);
+  color-scheme: dark;
+  scrollbar-color: var(--line-strong) var(--bg);
+  scrollbar-width: thin;
+}
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--line-strong); border: 2px solid var(--bg); background-clip: padding-box; border-radius: 8px; }
+::-webkit-scrollbar-thumb:hover { background: var(--gold-line); background-clip: padding-box; }
+
 body {
-  background: radial-gradient(circle at top, #0d1b2a 0%, #000000 70%);
-  color: #e0e0e0;
+  margin: 0;
   min-height: 100vh;
-  font-family: -apple-system, 'Segoe UI', Roboto, sans-serif;
+  color: var(--text);
+  font-family: var(--font-body);
+  background: var(--bg);
 }
 
-/* ---- Inline SVG icons on buttons ----
-   Self-contained (no icon-font CDN) — sized to sit neatly next to text and
-   colored via currentColor so they follow each button's normal/hover/active
-   text color automatically. */
-.btn-icon {
-  width: 1em;
-  height: 1em;
-  flex-shrink: 0;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.4;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
+body.modal-open { overflow: hidden; }
 
-/* ---- Navbar / banner ---- */
-.navbar {
-  background: linear-gradient(90deg, #000000, #1a1a2e) !important;
-  border-bottom: 2px solid var(--sw-gold);
-  padding-top: 0.75rem;
-  padding-bottom: 0.75rem;
-}
+.container { width: min(1180px, calc(100% - 32px)); margin-inline: auto; }
 
-.navbar-brand {
+/* ---- Header: dark bar with a bright gold sliver underneath ------------- */
+.site-header {
+  background: var(--bg);
+  border-bottom: 2px solid var(--gold);
+  box-shadow: 0 1px 16px rgba(247, 201, 72, 0.35);
+}
+.header-status { flex-shrink: 0; display: flex; align-items: right; color: var(--muted); font-family: var(--font-display); font-size: 0.8rem; font-weight: 700; letter-spacing: 0.14em; }
+.header-status span {
+  display: inline-block; width: 7px; height: 7px; margin-right: 8px; border-radius: 50%;
+  background: var(--green); box-shadow: 0 0 10px var(--green);
+  animation: pulse-dot 2.4s ease-in-out infinite;
+}
+.header-status {
+  margin-left: auto;
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 8px;
+}
+.header-inner { min-height: 68px; display: flex; align-items: center; padding-block: 12px; }
+.brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.brand-logo { width: 40px; height: 40px; flex-shrink: 0; filter: drop-shadow(0 0 6px rgba(247, 201, 72, 0.45)); }
+.brand h1 {
+  margin: 0; font-family: var(--font-body); font-weight: 800;
+  font-size: 1.35rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text); white-space: nowrap;
 }
 
-.brand-logo {
-  height: 34px;
-  width: 34px;
-  flex-shrink: 0;
-  filter: drop-shadow(0 0 6px rgba(255, 232, 31, 0.55));
+/* ---- Main content -------------------------------------------------------- */
+.main-content { padding: 24px 0 64px; }
+
+/* Hero copy kept for context but styled quietly, matching the flat theme. */
+.hero { max-width: 700px; margin-bottom: 20px; }
+.hero .eyebrow { margin: 0; color: var(--gold); font-family: var(--font-display); font-size: 0.78rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; }
+.hero h2 { margin: 6px 0 10px; font-weight: 800; font-size: clamp(1.6rem, 4vw, 2.4rem); color: var(--gold); }
+.hero p:last-child { margin: 0; color: var(--muted); font-size: 0.98rem; line-height: 1.6; max-width: 58ch; }
+
+/* ---- Controls: rounded panel, rounded pill tabs ------------------------ */
+.controls {
+  display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;
+  gap: 16px; padding: 12px; margin-bottom: 18px;
+  border: 1px solid var(--line); border-radius: var(--radius-lg);
+  background: var(--panel);
 }
 
-.brand-text {
-  font-family: -apple-system, 'Segoe UI', Roboto, sans-serif;
-  text-transform: uppercase;
-  color: var(--sw-gold) !important;
-  font-weight: 700;
-  letter-spacing: 3px;
-  text-shadow: 0 0 8px rgba(255, 232, 31, 0.6);
-  font-size: 1.15rem;
+.resource-tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.resource-tab, #view-details-btn, .secondary-button {
+  display: inline-flex; align-items: center; gap: 8px;
+  min-height: 42px;
+  border: 1px solid var(--line); border-radius: var(--radius-sm);
+  background: transparent; color: var(--text); cursor: pointer;
+  font: inherit; font-family: var(--font-body); font-weight: 600; font-size: 0.95rem;
+  letter-spacing: 0.01em; padding: 9px 16px;
+  transition: color 150ms ease, background-color 150ms ease, border-color 150ms ease,
+    box-shadow 150ms ease, transform 150ms ease;
 }
 
-@media (max-width: 400px) {
-  .brand-text {
-    font-size: 0.9rem;
-    letter-spacing: 1.5px;
-  }
-  .brand-logo {
-    height: 28px;
-    width: 28px;
-  }
+.resource-tab .btn-icon { color: var(--muted); }
+.resource-tab:hover { border-color: var(--gold-line); }
+.resource-tab.active {
+  color: var(--on-gold);
+  background: linear-gradient(180deg, var(--gold-light), var(--gold) 65%, var(--gold-dark));
+  border-color: var(--gold);
+  box-shadow: 0 0 16px rgba(247, 201, 72, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+.resource-tab.active .btn-icon { color: var(--on-gold); }
+.resource-tab:active, #view-details-btn:not(:disabled):active, .secondary-button:active { transform: translateY(1px); }
+
+.resource-tab:focus-visible, #view-details-btn:focus-visible, .secondary-button:focus-visible,
+.modal-close:focus-visible, .entity-card:focus-visible, #entity-picker:focus-visible {
+  outline: 2px solid var(--gold); outline-offset: 2px;
 }
 
-/* ---- Tabs ---- */
-#resource-tabs {
-  flex-wrap: wrap;
-  row-gap: 0.5rem;
+.jump-control { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.jump-control label { color: var(--muted); font-weight: 600; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.1em; }
+
+#entity-picker {
+  min-width: 190px; min-height: 42px; padding: 9px 34px 9px 14px;
+  border: 1px solid var(--line); border-radius: var(--radius-sm);
+  background-color: var(--panel-hover); color: var(--text); font: inherit;
+  appearance: none; -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%23f7c948' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round' d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 12px center;
+}
+#entity-picker:hover { border-color: var(--gold-line); }
+
+#view-details-btn:not(:disabled):hover {
+  color: var(--on-gold); border-color: var(--gold);
+  background: linear-gradient(180deg, var(--gold-light), var(--gold));
+}
+#view-details-btn:not(:disabled) { border-color: var(--gold-line); color: var(--gold); }
+#view-details-btn:disabled { cursor: not-allowed; opacity: 0.4; }
+
+/* ---- Status ------------------------------------------------------------- */
+.status { min-height: 26px; padding: 6px 2px 14px; color: var(--text); font-size: 0.9rem; font-weight: 700; }
+.status[data-type="error"] { color: var(--red); }
+.status[data-type="success"] { color: var(--text); }
+
+/* ---- Results grid --------------------------------------------------------
+   auto-fill keeps card width consistent and lets the grid reflow to any
+   viewport without a ladder of breakpoints. */
+.results-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+  gap: 16px;
 }
 
-#resource-tabs .nav-link {
+.entity-card {
+  position: relative;
+  min-height: 150px; display: flex; flex-direction: column;
+  border: 1px solid var(--line); border-radius: var(--radius);
+  background: var(--panel);
+  padding: 20px 22px;
   cursor: pointer;
-  color: #cfcfcf;
-  border: 1px solid transparent;
-  transition: all 0.25s ease;
-  font-weight: 600;
-  letter-spacing: 0.5px;
+  transition: transform 150ms ease, border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
 }
 
-#resource-tabs .nav-link:hover {
-  color: var(--sw-gold);
-  border-color: var(--sw-gold);
+.entity-card:hover, .entity-card:focus-visible {
+  transform: translateY(-3px);
+  border-color: var(--gold-line);
+  background: var(--panel-hover);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4);
 }
 
-#resource-tabs .nav-link.active {
-  background-color: var(--sw-gold) !important;
-  color: #000 !important;
-  font-weight: 700;
-  box-shadow: 0 0 12px rgba(255, 232, 31, 0.7);
+/* The eyebrow resource label isn't part of this flatter card design. */
+.entity-type { display: none; }
+
+.entity-name {
+  margin: 0 0 12px; font-weight: 700; font-size: 1.15rem; line-height: 1.2;
+  letter-spacing: 0.01em; color: var(--gold); text-transform: uppercase;
 }
+.entity-card-body { flex: 1; }
+.entity-card-footer { display: none; }
 
-#resource-tabs .nav-link:focus-visible {
-  outline: 2px solid var(--sw-blue);
-  outline-offset: 2px;
+.detail-row { display: block; padding: 3px 0; }
+.detail-label {
+  color: var(--muted); font-size: 0.92rem; font-weight: 500;
 }
+.detail-label::after { content: ": "; }
+.detail-value { color: var(--text); font-size: 0.92rem; font-weight: 500; }
 
-/* ---- Status line ---- */
-#status {
-  min-height: 1.5em;
-  transition: opacity 0.3s ease;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-}
+/* ---- Modal ---------------------------------------------------------------
+   Same flat, rounded language as the rest of the page — gold accent instead
+   of a separate "holo" color, so opening a record feels continuous. */
+.modal { display: none; position: fixed; inset: 0; z-index: 1000; overflow-y: auto; padding: clamp(14px, 4vw, 30px); background: rgba(0, 0, 0, 0.72); }
+.modal.show { display: block; }
+.modal-dialog { width: min(680px, 100%); margin: min(7vh, 60px) auto; }
 
-#status:empty::before {
-  content: '';
-}
-
-#status.is-error {
-  color: #ff6b6b;
-}
-
-/* ---- Cards ---- */
-.card {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 232, 31, 0.2);
-  color: #e0e0e0;
-  backdrop-filter: blur(4px);
-  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
-  animation: fadeInUp 0.4s ease both;
-}
-
-.card:hover {
-  transform: translateY(-6px);
-  border-color: var(--sw-gold);
-  box-shadow: 0 8px 24px rgba(255, 232, 31, 0.25);
-}
-
-.card-title {
-  text-transform: uppercase;
-  color: var(--sw-gold);
-  font-family: -apple-system, 'Segoe UI', Roboto, sans-serif;
-  font-weight: 700;
-  font-size: 1.05rem;
-  letter-spacing: 0.5px;
-}
-
-.card-text {
-  color: #cfcfcf;
-}
-
-/* Stagger card entrance slightly per column position */
-.row > div:nth-child(1) .card { animation-delay: 0.02s; }
-.row > div:nth-child(2) .card { animation-delay: 0.06s; }
-.row > div:nth-child(3) .card { animation-delay: 0.10s; }
-.row > div:nth-child(4) .card { animation-delay: 0.14s; }
-.row > div:nth-child(5) .card { animation-delay: 0.18s; }
-.row > div:nth-child(6) .card { animation-delay: 0.22s; }
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(16px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* ---- Entity picker dropdown ---- */
-.form-select {
-  background-color: #12121f;
-  color: #e0e0e0;
-  border: 1px solid rgba(255, 232, 31, 0.4);
-  min-width: 180px;
-}
-
-.form-select:focus {
-  border-color: var(--sw-gold);
-  box-shadow: 0 0 0 0.2rem rgba(255, 232, 31, 0.25);
-}
-
-/* ---- Details modal ---- */
 .modal-content {
-  background-color: #0d0d17;
-  color: #e0e0e0;
-  border: 1px solid var(--sw-gold);
+  position: relative; overflow: hidden;
+  border: 1px solid var(--gold-line); border-radius: var(--radius-lg);
+  background: var(--panel);
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.65), 0 0 24px rgba(247, 201, 72, 0.18);
+  animation: modal-in 200ms ease-out;
 }
 
-.modal-header,
-.modal-footer {
-  border-color: rgba(255, 232, 31, 0.3);
+@keyframes modal-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-.modal-title {
-  font-family: -apple-system, 'Segoe UI', Roboto, sans-serif;
-  text-transform: uppercase;
-  font-weight: 700;
-  color: var(--sw-gold);
-  letter-spacing: 0.5px;
+.modal-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; padding: 20px 24px; border-bottom: 1px solid var(--line); }
+.modal-kicker { margin: 0; color: var(--gold); font-size: 0.78rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; }
+.modal-header h2 { margin: 5px 0 0; font-weight: 700; font-size: 1.5rem; text-transform: uppercase; }
+.modal-close { border: 0; background: transparent; color: var(--muted); cursor: pointer; font-size: 1.8rem; line-height: 1; padding: 4px 8px; border-radius: var(--radius-sm); }
+.modal-close:hover { color: var(--gold); background: var(--gold-soft); }
+.modal-body { padding: 20px 24px; max-height: 60vh; overflow-y: auto; }
+.details-list { border: 1px solid var(--line); border-radius: var(--radius); padding: 4px 14px; }
+.details-list .detail-row { padding: 10px 0; }
+.details-list .detail-row + .detail-row { border-top: 1px solid var(--line); }
+.details-description { margin: 18px 0 0; padding: 16px; border-radius: var(--radius); border-left: 3px solid var(--gold); background: var(--gold-soft); color: #d6dbe3; line-height: 1.7; white-space: pre-line; }
+.modal-footer { display: flex; justify-content: flex-end; padding: 14px 24px; border-top: 1px solid var(--line); }
+.secondary-button:hover { color: var(--on-gold); background: linear-gradient(180deg, var(--gold-light), var(--gold)); border-color: var(--gold); }
+.modal-backdrop { position: fixed; inset: 0; z-index: 999; background: rgba(0, 0, 0, 0.72); }
+
+/* ---- Inline SVG icons ----------------------------------------------------
+   Sized to sit next to text and colored via currentColor so every button
+   state (default/hover/active) carries through automatically. */
+.btn-icon { width: 1em; height: 1em; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ---- Responsive ------------------------------------------------------- */
+@media (max-width: 850px) {
+  .controls { flex-direction: column; align-items: stretch; }
+  .jump-control { flex-wrap: wrap; }
 }
 
-.modal .btn-close {
-  filter: invert(1);
+@media (max-width: 640px) {
+  .header-inner { min-height: auto; padding-block: 12px; }
+  .brand h1 { font-size: 1.1rem; }
+  .jump-control { align-items: stretch; flex-direction: column; }
+  .jump-control label { padding-left: 2px; }
+  #entity-picker, #view-details-btn { width: 100%; justify-content: center; }
+  .modal-dialog { margin: 0 auto; }
+  .modal-body { max-height: 65vh; }
 }
 
-.modal dl dt {
-  color: var(--sw-gold);
-  font-weight: 600;
+@media (max-width: 420px) {
+  .container { width: min(100% - 20px, 1180px); }
+  .entity-card { padding: 16px; }
 }
 
-.modal dl dd {
-  color: #cfcfcf;
+/* ---- Motion & contrast preferences ------------------------------------ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
 }
 
-/* ---- Small-screen tweaks beyond Bootstrap's own grid behavior ---- */
-@media (max-width: 576px) {
-  .container {
-    padding-left: 1rem;
-    padding-right: 1rem;
-  }
-
-  #resource-tabs .nav-link {
-    font-size: 0.85rem;
-    padding: 0.4rem 0.7rem;
-  }
-
-  #entity-picker {
-    width: 100%;
-    min-width: 0;
-  }
+@media (prefers-contrast: more) {
+  :root { --line: rgba(200, 210, 225, 0.4); --muted: #b7c0cd; }
 }

@@ -2,7 +2,7 @@
 
 A small vanilla JavaScript application for exploring data from the [SWAPI](https://swapi.info).
 
-Browse **Characters, Films, Planets and Starships**, see the API results as cards, and click any card to open a detailed record.
+Browse **Star Wars Characters, Films, Planets and Starships**, see the API results as cards, and click any card to open a detailed record.
 
 ## Preview
 
@@ -11,30 +11,6 @@ Browse **Characters, Films, Planets and Starships**, see the API results as card
 ## Demo
 
 [View SWAPI Explorer](https://paddymacmac.github.io/swapi-explorer/)
-
-## Features
-
-* Browse Characters, Films, Planets, and Starships
-* Responsive card-based layout
-* "Jump to..." dropdown for quickly finding an entity
-* Alphabetically sorted entity selection
-* Detailed information displayed in a modal
-* Loading and error states
-* Responsive design for desktop and mobile
-* Hand-written modal behaviour without requiring Bootstrap's JavaScript bundle
-* Automated tests covering the application's JavaScript modules
-* **99% statement/line coverage and 100% function coverage**
-
-## Technologies
-
-* JavaScript (ES modules)
-* HTML5
-* CSS3
-* Bootstrap 5
-* Node.js
-* Vitest
-* jsdom
-* SWAPI
 
 
 ## Getting started
@@ -93,6 +69,29 @@ npm run coverage
 ```
 
 Tests use **Vitest** and **jsdom**. The suite covers the domain rules, API boundary, application use cases, rendering, modal behaviour and browser event wiring.
+
+## Features
+
+* Browse Characters, Films, Planets, and Starships
+* Responsive card-based layout
+* "Jump to..." dropdown for quickly finding an entity
+* Alphabetically sorted entity selection
+* Detailed information displayed in a modal
+* Loading and error states
+* Responsive design for desktop and mobile
+* Hand-written modal behaviour without requiring Bootstrap's JavaScript bundle
+* Automated tests covering the application's JavaScript modules
+
+## Technologies
+
+* JavaScript (ES modules)
+* HTML5
+* CSS3
+* Bootstrap 5
+* Node.js
+* Vitest
+* jsdom
+* SWAPI
 
 Importantly, the application test verifies the real UI flow: mocked SWAPI data is loaded, cards are rendered into `#results`, and clicking a card opens the details modal with the selected entity.
 

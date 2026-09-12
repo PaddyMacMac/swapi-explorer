@@ -8,7 +8,7 @@ Built with **plain JavaScript ES modules**, **Bootstrap 5**, and **Vitest** — 
 
 ## Preview
 
-![SWAPI Explorer](public/images/screenshot.png)
+![SWAPI Explorer](public/images/Screenshot.png)
 
 ## Demo
 

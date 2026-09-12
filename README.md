@@ -1,17 +1,35 @@
 # SWAPI Explorer
 
-A small vanilla JavaScript application for exploring data from the [SWAPI](https://swapi.info).
+A small, dependency-free JavaScript application for exploring [SWAPI](https://swapi.info), the Star Wars API.
 
-Browse **Star Wars Characters, Films, Planets and Starships**, see the API results as cards, and click any card to open a detailed record.
+Browse **Characters, Films, Planets and Starships**, see results as cards, and open any card for a detailed record — built with plain ES modules and a domain-driven-inspired structure rather than a framework.
 
 ## Preview
 
 ![SWAPI Explorer](public/images/Screenshot.png)
 
-## Demo
+## Live demo
 
 [View SWAPI Explorer](https://paddymacmac.github.io/swapi-explorer/)
 
+## Features
+
+- Browse Characters, Films, Planets, and Starships
+- Responsive, card-based grid layout
+- "Jump to…" dropdown for quickly locating a specific entity
+- Alphabetically sorted entity selection
+- Full record detail shown in an accessible modal
+- Loading and error states surfaced to the user
+- Keyboard-operable cards and modal (`Enter`/`Space` to open, `Escape` to close)
+- Automated test suite covering domain, application, infrastructure and UI layers
+
+## Tech stack
+
+- Vanilla JavaScript (ES modules) — no framework, no build step
+- HTML5 / CSS3
+- Node.js (dependency-free static file server for local dev)
+- [Vitest](https://vitest.dev) + [jsdom](https://github.com/jsdom/jsdom) for testing
+- [SWAPI](https://swapi.info) as the data source
 
 ## Getting started
 
@@ -26,78 +44,39 @@ Browse **Star Wars Characters, Films, Planets and Starships**, see the API resul
 npm install
 ```
 
-### Start
+### Run
 
 ```bash
 npm start
 ```
 
-The project uses a small Node standard-library server, so `npm start` does not download a separate HTTP server package.
-
-Open:
+This starts a small Node standard-library static server — no extra HTTP server dependency is downloaded. Then open:
 
 ```text
 http://127.0.0.1:8080
 ```
 
-To use another port on Windows PowerShell:
+To use a different port (Windows PowerShell):
 
 ```powershell
 $env:PORT=8081; npm start
 ```
 
-The application must be served over HTTP because browser ES modules are restricted when loaded directly with `file://`.
+The app must be served over HTTP rather than opened as a `file://` path, since browsers restrict ES module loading from the local filesystem.
 
 ## Testing
 
-Run the complete test suite:
-
 ```bash
-npm test
+npm test              # run the full suite once
+npm run test:watch    # re-run on change
+npm run coverage      # generate a coverage report
 ```
 
-Watch tests during development:
+The suite covers domain rules, the SWAPI HTTP boundary, application use cases, rendering, modal behaviour, and browser event wiring — including an end-to-end-style test that loads mocked SWAPI data, renders it into `#results`, and confirms clicking a card opens the modal with the right entity.
 
-```bash
-npm run test:watch
-```
+## Architecture
 
-Generate coverage:
-
-```bash
-npm run coverage
-```
-
-Tests use **Vitest** and **jsdom**. The suite covers the domain rules, API boundary, application use cases, rendering, modal behaviour and browser event wiring.
-
-## Features
-
-* Browse Characters, Films, Planets, and Starships
-* Responsive card-based layout
-* "Jump to..." dropdown for quickly finding an entity
-* Alphabetically sorted entity selection
-* Detailed information displayed in a modal
-* Loading and error states
-* Responsive design for desktop and mobile
-* Hand-written modal behaviour without requiring Bootstrap's JavaScript bundle
-* Automated tests covering the application's JavaScript modules
-
-## Technologies
-
-* JavaScript (ES modules)
-* HTML5
-* CSS3
-* Bootstrap 5
-* Node.js
-* Vitest
-* jsdom
-* SWAPI
-
-Importantly, the application test verifies the real UI flow: mocked SWAPI data is loaded, cards are rendered into `#results`, and clicking a card opens the details modal with the selected entity.
-
-## Why this design?
-
-The project deliberately uses **plain functional JavaScript** rather than classes or inheritance. The goal is to keep a small application easy to understand while still demonstrating useful architectural boundaries.
+The codebase favours small, single-purpose modules over classes or inheritance — enough separation to show clear boundaries, without the ceremony a browser app of this size doesn't need.
 
 ```text
 src/js/
@@ -110,41 +89,27 @@ src/js/
 ├── ui/
 │   ├── render.js             # DOM rendering only
 │   └── modal.js              # Modal behaviour only
-└── app.js                    # Composition root and browser events
+└── app.js                    # Composition root and browser event wiring
 ```
 
-### Responsibilities
+**Responsibilities**
 
-- **Domain** — knows what resources exist, how entities are named and sorted, and which fields are displayed.
-- **Application** — coordinates use cases without knowing about the DOM or `fetch`.
-- **Infrastructure** — knows how to call SWAPI. The client accepts a fetch function, making it easy to test without the network.
-- **UI** — renders data and controls the modal. It does not fetch data or own application state.
-- **`app.js`** — wires the pieces together and translates browser events into use-case calls.
+| Layer | Owns | Does not own |
+|---|---|---|
+| `domain` | What resources exist, how entities are named/sorted, which fields display | The DOM, HTTP |
+| `application` | Use-case coordination (load, select) | The DOM, `fetch` |
+| `infrastructure` | Calling SWAPI, via an injectable fetch function | Rendering, app state |
+| `ui` | Rendering data, modal open/close | Fetching data, app state |
+| `app.js` | Wiring browser events to use cases | Business logic, rendering logic |
 
-This is DDD-inspired rather than a full enterprise DDD implementation. A small browser application does not need repositories, aggregates and elaborate domain classes just to satisfy a pattern.
+This is **DDD-inspired rather than a full DDD implementation** — a small app like this doesn't need repositories, aggregates or rich domain objects to benefit from the same underlying idea: keep what the app *knows* separate from how it *fetches* and how it *displays*.
 
-## Clean code choices
+### Design decisions
 
-The refactor intentionally favours:
-
-- descriptive names such as `createExplorer`, `getSelectedEntity` and `renderResults`;
-- small functions with one clear responsibility;
-- dependency injection at the infrastructure boundary;
-- configuration instead of repeated resource-specific rendering code;
-- immutable-style operations such as sorting a copy of API results;
-- DOM APIs and `textContent` for external values rather than building HTML strings from API data;
-- one-way flow from API → application → UI;
-- no class hierarchy or inheritance where it would add complexity without value.
-
-## User experience
-
-- Star Wars-inspired dark interface with restrained gold accents.
-- Responsive cards for all four resource types.
-- Every card is clickable and opens its details modal.
-- Cards are also keyboard accessible with **Enter** or **Space**.
-- The **Jump to** control selects a record and enables **View details**.
-- Modal closes with the close buttons, backdrop or **Escape**.
-- Loading and API error states are displayed to the user.
+- **Why plain functions instead of classes?** Nothing here needs mutable identity or inheritance; closures and small pure functions keep behaviour easy to isolate and test.
+- **Why not a repository abstraction?** The only I/O is a GET request to SWAPI. `infrastructure/swapiClient.js` already isolates that boundary and accepts an injectable `fetch`, so tests run without the network — a repository layer on top would add indirection without solving a real problem here.
+- **Why one configuration object for four resource types?** Characters, films, planets and starships each have different fields but identical behaviour. A small per-resource config (in `domain/resources.js`) avoids four near-duplicate renderers while keeping the differences explicit and easy to extend.
+- **Why does `app.js` stay small?** It's the composition root — it wires DOM events to use cases and nothing else, so it doesn't grow into a controller that also knows how to render or fetch.
 
 ## Project structure
 
@@ -152,7 +117,6 @@ The refactor intentionally favours:
 .
 ├── index.html
 ├── package.json
-├── package-lock.json
 ├── vitest.config.js
 ├── scripts/
 │   └── server.js
@@ -162,15 +126,11 @@ The refactor intentionally favours:
 │   ├── css/
 │   │   └── style.css
 │   └── js/
-│       ├── domain/
-│       │   └── resources.js
-│       ├── application/
-│       │   └── explorer.js
-│       ├── infrastructure/
-│       │   └── swapiClient.js
-│       ├── ui/
-│       │   ├── render.js
-│       │   └── modal.js
+│       ├── domain/resources.js
+│       ├── application/explorer.js
+│       ├── infrastructure/swapiClient.js
+│       ├── ui/render.js
+│       ├── ui/modal.js
 │       └── app.js
 └── test/
     ├── domain.test.js
@@ -181,38 +141,27 @@ The refactor intentionally favours:
     └── app.test.js
 ```
 
-## Architecture trade-offs
+## What this project demonstrates
 
-### Why functional JavaScript?
+- REST API integration via `fetch`, with an injectable HTTP boundary for testability
+- Separation of concerns across domain / application / infrastructure / UI
+- DDD-inspired layering, applied pragmatically rather than dogmatically
+- Configuration over duplication for structurally-similar resource types
+- DOM manipulation and event delegation without a framework
+- Accessible, keyboard-operable UI (roles, `aria-*` attributes, focus states)
+- Loading and error handling as first-class UI states
+- Unit and DOM-integration testing with Vitest + jsdom
 
-The application has little need for mutable objects with identity or inheritance. Functions and closures keep the code shorter and make individual behaviours straightforward to test.
+## With more time
 
-### Why not create a repository?
+A few things I'd tackle next, given more than the ~2-hour scope of this task:
 
-The only persistence-like operation is a GET request to SWAPI. Adding a repository abstraction would add another layer without solving a current problem. The HTTP client is already isolated behind a small dependency boundary.
-
-### Why keep resource definitions together?
-
-Characters, films, planets and starships have different fields, but their behaviour is structurally the same. A small configuration object avoids four almost-identical renderer implementations while keeping the differences explicit.
-
-### Why is `app.js` still relatively small?
-
-It acts as the composition root: browser events are connected to application use cases and UI functions there. Business and rendering logic are kept outside it so it does not become a large controller.
-
-## What the project demonstrates
-
-- REST API integration with `fetch`
-- ES modules
-- Functional programming techniques
-- Separation of concerns
-- Dependency injection
-- DDD-inspired boundaries
-- Clean code and SOLID principles applied pragmatically
-- DOM manipulation and event delegation
-- Accessibility and keyboard interaction
-- Error/loading states
-- Unit and DOM integration testing
-- Responsive UI design
+- Pagination or infinite scroll instead of loading each resource in full
+- A search/filter box alongside the "Jump to…" picker for larger result sets
+- Resolving related-entity URLs (e.g. a character's homeworld or films) into readable links inside the modal
+- Client-side caching of already-fetched resources to avoid re-requesting on tab switches
+- A retry affordance on the error state, rather than requiring a manual tab reselect
+- TypeScript (or JSDoc types) at the `infrastructure`/`domain` boundary for stronger contracts
 
 ## API
 

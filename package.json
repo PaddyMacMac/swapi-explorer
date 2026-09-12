@@ -4,7 +4,7 @@
   "description": "A clean, functional vanilla JavaScript explorer for SWAPI.",
   "type": "module",
   "scripts": {
-    "start": "node scripts/server.js",
+    "start": "npx --yes http-server . -c-1 -o",
     "test": "vitest run",
     "test:watch": "vitest",
     "coverage": "vitest run --coverage"

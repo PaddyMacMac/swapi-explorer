@@ -2,9 +2,30 @@
 
 A dependency-light vanilla JavaScript app for browsing **Characters, Films, Planets and Starships** from [SWAPI](https://swapi.dev), with artwork, a detail modal, and full test coverage.
 
+## Preview
+
 ![SWAPI Explorer](public/images/Screenshot.png)
 
-**[Live demo](https://paddymacmac.github.io/swapi-explorer/)**
+## Live demo
+
+[View SWAPI Explorer](https://paddymacmac.github.io/swapi-explorer/)
+
+## Getting started
+
+**Requirements:** Node.js 18+, a modern browser.
+
+```bash
+npm install
+npm start   # serves at http://127.0.0.1:8080
+```
+
+### Running the tests
+
+```bash
+npm test           # run once
+npm run test:watch # re-run on file changes
+npm run coverage    # coverage report (@vitest/coverage-v8)
+```
 
 ---
 
@@ -90,22 +111,38 @@ Each layer is tested at the boundary that matters to it:
 
 The artwork client takes `fetch` as an injected dependency, so tests run deterministically against fakes instead of the live third-party API.
 
-## Getting started
+## With more time
 
-**Requirements:** Node.js 18+, a modern browser.
+This was scoped deliberately small. Given more time, in rough priority order:
 
-```bash
-npm install
-npm start   # serves at http://127.0.0.1:8080
-```
+**Robustness**
+- **Input/response validation** — the app trusts SWAPI's response shape completely. A schema check (e.g. Zod, or a hand-rolled guard) at the infrastructure boundary would fail fast with a clear error instead of letting a malformed field silently render as `Unknown` further up.
+- **Retry/backoff for the artwork APIs** — right now a failed artwork request goes straight to the next fallback candidate. A third-party API having a bad five seconds (rather than being genuinely down) currently looks identical to it being offline; a short retry with backoff before falling back would be more resilient to transient failures.
+- **Request timeouts** — none of the `fetch` calls have an `AbortController` timeout, so a hung request can leave the UI in "Loading…" indefinitely.
 
-### Running the tests
+**Performance / scale**
+- **Pagination or virtualisation** — SWAPI's dataset is small enough to load and render in full, but that assumption breaks if the resource list ever grows. I'd add either server-side pagination (if the API supported it) or a virtualised list so the DOM node count doesn't scale with the dataset.
+- **Search/filter** — a debounced text filter over the currently loaded entities would be a small, high-value addition given the domain layer already exposes `getEntityName`.
 
-```bash
-npm test           # run once
-npm run test:watch # re-run on file changes
-npm run coverage    # coverage report (@vitest/coverage-v8)
-```
+**Security**
+- **Content-Security-Policy header** — the app pulls fonts, SWAPI, and three separate artwork APIs from different origins with no CSP in place; worth locking that down explicitly rather than relying on implicit browser trust.
+- **Subresource Integrity** on the Google Fonts `<link>` and any future third-party `<script>` tags.
+- The DOM rendering is already injection-safe (covered by the "safe DOM rendering" tests), but I'd add that as an explicit, named security consideration rather than a side effect of the render approach.
+
+**DevOps / CI**
+- **GitHub Actions** — run `npm test` and `npm run coverage` on every PR, and fail the build below a coverage threshold. Currently tests are a local discipline, not an enforced gate.
+- **Automated deploy** — the live demo is on GitHub Pages; a workflow that deploys on merge to `main` would remove the manual step.
+- **Dockerfile** — not strictly necessary for a static app with no backend, but a minimal `Dockerfile` + `nginx` (or `http-server`) would make local parity and any future deployment target trivial, and would matter a lot more if a backend were added later.
+
+**Code quality tooling**
+- **ESLint + Prettier**, enforced via a pre-commit hook (husky/lint-staged) and in CI — the codebase is consistent today by discipline, not by tooling.
+- **TypeScript, or at minimum stricter JSDoc typechecking** (`checkJs` via `tsconfig.json`) — the domain layer's shapes (`RESOURCE_DEFINITIONS`, entity records) are exactly the kind of thing types catch regressions in for free.
+
+**UX**
+- An accessibility audit (axe/Lighthouse) beyond the keyboard-operable cards and modal already in place.
+- Persisting the last-viewed resource/tab (e.g. via `localStorage`) so a refresh doesn't reset to Characters.
+
+I'd frame all of this as: the current scope is fully tested and consistent for what it does, and everything above is additive rather than corrective — none of it is a gap I'd be uncomfortable defending as a deliberate v1 cut.
 
 ## Project structure
 

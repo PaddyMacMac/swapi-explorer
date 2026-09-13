@@ -1,6 +1,6 @@
 # SWAPI Explorer
 
-A dependency-light vanilla JavaScript app for browsing **Characters, Films, Planets and Starships** from [SWAPI](https://swapi.dev), with artwork, a detail modal, and full test coverage.
+A vanilla JavaScript app for browsing **Characters, Films, Planets and Starships** from [SWAPI](https://swapi.dev), with artwork, a detail modal, and full test coverage.
 
 ## Preview
 

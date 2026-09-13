@@ -2,7 +2,7 @@
 
 const BASE_URL = 'https://swapi.info/api';
 
-export const createSwapiClient = (fetcher = fetch) => ({
+export const createSwapiClient = (fetcher = globalThis.fetch) => ({
   async get(resource) {
     const response = await fetcher(`${BASE_URL}/${resource}`);
 
@@ -14,5 +14,5 @@ export const createSwapiClient = (fetcher = fetch) => ({
   },
 });
 
-export const fetchFromSwapi = async (resource, fetcher = fetch) =>
+export const fetchFromSwapi = async (resource, fetcher = globalThis.fetch) =>
   createSwapiClient(fetcher).get(resource);

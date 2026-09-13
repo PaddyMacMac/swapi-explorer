@@ -1,85 +1,116 @@
-// Starts the SWAPI Explorer and connects browser events to the application use cases and UI.
+// Composition root: creates the application's dependencies, wires browser
+// events to the application/UI layers, and starts the app. This is the only
+// module that knows about all the other layers at once.
 
 import { createExplorer } from './application/explorer.js';
 import { createSwapiClient } from './infrastructure/swapiClient.js';
-import { closeModal, openModal } from './ui/modal.js';
+import { createStarWarsArtworkClient } from './infrastructure/starWarsArtworkClient.js';
+import { createModalController } from './ui/modal.js';
 import { renderDetails, renderPicker, renderResults, renderStatus } from './ui/render.js';
 
-const explorer = createExplorer({ swapiClient: createSwapiClient() });
+const DEFAULT_RESOURCE = 'people';
 
 const getElement = id => document.getElementById(id);
 
-const setActiveTab = resource => {
-  document.querySelectorAll('#resource-tabs [data-resource]').forEach(button => {
-    button.classList.toggle('active', button.dataset.resource === resource);
-  });
-};
+/**
+ * Builds the app's use cases and browser wiring from its dependencies.
+ * Defaults create real network clients; tests or alternate entry points can
+ * override any of them.
+ */
+export const createSwapiExplorerApp = ({
+  explorer = createExplorer({ swapiClient: createSwapiClient() }),
+  artworkClient = createStarWarsArtworkClient(),
+} = {}) => {
+  const setActiveTab = resource => {
+    document.querySelectorAll('#resource-tabs [data-resource]').forEach(button => {
+      button.classList.toggle('active', button.dataset.resource === resource);
+    });
+  };
 
-const showDetails = index => {
-  const state = explorer.getState();
-  const entity = explorer.getSelectedEntity(index);
-  if (!entity) return;
+  const resetSelection = () => {
+    getElement('view-details-btn').disabled = true;
+  };
 
-  renderDetails(entity, state.resource);
-  openModal(getElement('detailsModal'));
-};
-
-export const loadResource = async resource => {
-  renderStatus(`Loading ${resource}…`);
-
-  try {
-    const entities = await explorer.loadResource(resource);
-    renderResults(entities, resource);
+  const renderEntityCollection = async (entities, resource) => {
+    await renderResults(entities, resource, artworkClient);
     renderPicker(entities, resource);
-    getElement('view-details-btn').disabled = true;
-    renderStatus(`Showing ${entities.length} ${resource}`, 'success');
-  } catch (error) {
-    renderResults([], resource);
-    renderPicker([], resource);
-    getElement('view-details-btn').disabled = true;
-    renderStatus(`Error loading ${resource}: ${error.message}`, 'error');
-  }
-};
+    resetSelection();
+  };
 
-export const initApp = () => {
-  const tabs = getElement('resource-tabs');
-  const picker = getElement('entity-picker');
-  const viewDetailsButton = getElement('view-details-btn');
-  const results = getElement('results');
-  const modal = getElement('detailsModal');
+  const loadResource = async resource => {
+    renderStatus(`Loading ${resource}…`);
 
-  tabs.addEventListener('click', event => {
-    const button = event.target.closest('[data-resource]');
-    if (!button) return;
-    setActiveTab(button.dataset.resource);
-    loadResource(button.dataset.resource);
-  });
-
-  picker.addEventListener('change', () => {
-    viewDetailsButton.disabled = picker.value === '';
-  });
-
-  viewDetailsButton.addEventListener('click', () => showDetails(Number(picker.value)));
-
-  results.addEventListener('click', event => {
-    const card = event.target.closest('.entity-card');
-    if (card) showDetails(Number(card.dataset.index));
-  });
-
-  results.addEventListener('keydown', event => {
-    const card = event.target.closest('.entity-card');
-    if (card && (event.key === 'Enter' || event.key === ' ')) {
-      event.preventDefault();
-      showDetails(Number(card.dataset.index));
+    try {
+      const entities = await explorer.loadResource(resource);
+      await renderEntityCollection(entities, resource);
+      renderStatus(`Showing ${entities.length} ${resource}`, 'success');
+    } catch (error) {
+      await renderEntityCollection([], resource);
+      renderStatus(`Error loading ${resource}: ${error.message}`, 'error');
     }
-  });
+  };
 
-  getElement('detailsModalCloseBtn').addEventListener('click', () => closeModal(modal));
-  getElement('detailsModalCloseFooterBtn').addEventListener('click', () => closeModal(modal));
+  // Set once initApp() wires up the DOM, so showDetails can stay a plain
+  // "show this entity" use case instead of every caller having to know
+  // which modal instance to pass it.
+  let detailsModal = null;
 
-  loadResource('people');
+  const showDetails = async index => {
+    const { resource } = explorer.getState();
+    const entity = explorer.getSelectedEntity(index);
+    if (!entity || !detailsModal) return;
+
+    await renderDetails(entity, resource, artworkClient);
+    detailsModal.open();
+  };
+
+  const initApp = () => {
+    const tabs = getElement('resource-tabs');
+    const picker = getElement('entity-picker');
+    const viewDetailsButton = getElement('view-details-btn');
+    const results = getElement('results');
+    detailsModal = createModalController(getElement('detailsModal'));
+
+    tabs.addEventListener('click', event => {
+      const button = event.target.closest('[data-resource]');
+      if (!button) return;
+      setActiveTab(button.dataset.resource);
+      loadResource(button.dataset.resource);
+    });
+
+    picker.addEventListener('change', () => {
+      viewDetailsButton.disabled = picker.value === '';
+    });
+
+    viewDetailsButton.addEventListener('click', () => showDetails(Number(picker.value)));
+
+    results.addEventListener('click', event => {
+      const card = event.target.closest('.entity-card');
+      if (card) showDetails(Number(card.dataset.index));
+    });
+
+    results.addEventListener('keydown', event => {
+      const card = event.target.closest('.entity-card');
+      if (card && (event.key === 'Enter' || event.key === ' ')) {
+        event.preventDefault();
+        showDetails(Number(card.dataset.index));
+      }
+    });
+
+    getElement('detailsModalCloseBtn').addEventListener('click', () => detailsModal.close());
+    getElement('detailsModalCloseFooterBtn').addEventListener('click', () => detailsModal.close());
+
+    loadResource(DEFAULT_RESOURCE);
+  };
+
+  return { initApp, loadResource, showDetails };
 };
 
-if (typeof document !== 'undefined' && getElement('resource-tabs')) initApp();
+const isBrowserWithAppMarkup = () =>
+  typeof document !== 'undefined' && getElement('resource-tabs') !== null;
 
-export { showDetails };
+const app = createSwapiExplorerApp();
+
+export const { initApp, loadResource, showDetails } = app;
+
+if (isBrowserWithAppMarkup()) app.initApp();

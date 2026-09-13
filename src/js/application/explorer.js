@@ -1,23 +1,25 @@
-// Coordinates resource loading and selection without knowing about the DOM or HTTP details.
+// Application layer: coordinates the "browse a resource, then inspect one
+// entity" use case. Knows about the domain's resource rules, but nothing
+// about the DOM or HTTP.
 
-import { getResourceDefinition, sortEntitiesByName } from '../domain/resources.js';
+import { assertSupportedResource, sortEntitiesByName } from '../domain/resources.js';
 
 export const createExplorer = ({ swapiClient }) => {
   let selectedResource = 'people';
   let entities = [];
 
   const loadResource = async resource => {
-    getResourceDefinition(resource);
+    assertSupportedResource(resource);
+    const rawEntities = await swapiClient.get(resource);
+
     selectedResource = resource;
-    entities = sortEntitiesByName(await swapiClient.get(resource), resource);
+    entities = sortEntitiesByName(rawEntities, resource);
     return entities;
   };
 
   const getSelectedEntity = index => entities[index] ?? null;
 
-  return {
-    loadResource,
-    getSelectedEntity,
-    getState: () => ({ resource: selectedResource, entities: [...entities] }),
-  };
+  const getState = () => ({ resource: selectedResource, entities: [...entities] });
+
+  return { loadResource, getSelectedEntity, getState };
 };

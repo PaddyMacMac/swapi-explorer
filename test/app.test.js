@@ -36,7 +36,7 @@ describe('app', () => {
 
     document.querySelector('.entity-card').click();
 
-    expect(document.getElementById('detailsModal').classList.contains('show')).toBe(true);
+    await vi.waitFor(() => expect(document.getElementById('detailsModal').classList.contains('show')).toBe(true));
     expect(document.getElementById('detailsModalLabel').textContent).toBe('Luke Skywalker');
   });
 

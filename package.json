@@ -1,6 +1,6 @@
 {
   "name": "swapi-explorer",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "description": "A clean, functional vanilla JavaScript explorer for SWAPI.",
   "type": "module",
   "scripts": {

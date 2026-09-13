@@ -1,8 +1,19 @@
 # SWAPI Explorer
 
-A small, dependency-free JavaScript application for exploring [SWAPI](https://swapi.info), the Star Wars API.
+A dependency-light vanilla JavaScript application for exploring **Characters, Films, Planets and Starships** from SWAPI. Results are rendered as accessible cards and can be opened in a detail modal.
 
-Browse **Characters, Films, Planets and Starships**, see results as cards, and open any card for a detailed record — built with plain ES modules and a domain-driven-inspired structure rather than a framework.
+## Features
+
+- Browse Characters, Films, Planets and Starships
+- Artwork on cards and detail modals
+- **Character artwork support with a dedicated `people → characters` mapping**
+- Curated artwork metadata with a Visual Guide fallback
+- If the primary image itself fails to load, the browser automatically tries the fallback image
+- Resource-specific fallback icons when no image can be loaded
+- Alphabetical "Jump to…" picker
+- Keyboard-operable cards and modal
+- Loading and error states
+- Automated domain, application, infrastructure and UI tests
 
 ## Preview
 
@@ -11,25 +22,6 @@ Browse **Characters, Films, Planets and Starships**, see results as cards, and o
 ## Live demo
 
 [View SWAPI Explorer](https://paddymacmac.github.io/swapi-explorer/)
-
-## Features
-
-- Browse Characters, Films, Planets, and Starships
-- Responsive, card-based grid layout
-- "Jump to…" dropdown for quickly locating a specific entity
-- Alphabetically sorted entity selection
-- Full record detail shown in an accessible modal
-- Loading and error states surfaced to the user
-- Keyboard-operable cards and modal (`Enter`/`Space` to open, `Escape` to close)
-- Automated test suite covering domain, application, infrastructure and UI layers
-
-## Tech stack
-
-- Vanilla JavaScript (ES modules) — no framework, no build step
-- HTML5 / CSS3
-- Node.js (dependency-free static file server for local dev)
-- [Vitest](https://vitest.dev) + [jsdom](https://github.com/jsdom/jsdom) for testing
-- [SWAPI](https://swapi.info) as the data source
 
 ## Getting started
 
@@ -50,66 +42,126 @@ npm install
 npm start
 ```
 
-This starts a small Node standard-library static server — no extra HTTP server dependency is downloaded. Then open:
+Then open `http://127.0.0.1:8080`.
 
-```text
-http://127.0.0.1:8080
-```
-
-To use a different port (Windows PowerShell):
-
-```powershell
-$env:PORT=8081; npm start
-```
-
-The app must be served over HTTP rather than opened as a `file://` path, since browsers restrict ES module loading from the local filesystem.
-
-## Testing
+### Test
 
 ```bash
-npm test              # run the full suite once
-npm run test:watch    # re-run on change
-npm run coverage      # generate a coverage report
+npm test
+npm run test:watch
+npm run coverage
 ```
-
-The suite covers domain rules, the SWAPI HTTP boundary, application use cases, rendering, modal behaviour, and browser event wiring — including an end-to-end-style test that loads mocked SWAPI data, renders it into `#results`, and confirms clicking a card opens the modal with the right entity.
 
 ## Architecture
 
-The codebase favours small, single-purpose modules over classes or inheritance — enough separation to show clear boundaries, without the ceremony a browser app of this size doesn't need.
+The project uses a small DDD-inspired layered design. Domain rules do not know about HTTP or the DOM; infrastructure adapters do not render; UI modules do not fetch data.
 
 ```text
 src/js/
 ├── domain/
-│   └── resources.js          # Resource definitions and pure domain rules
+│   └── resources.js
 ├── application/
-│   └── explorer.js           # Resource loading and selection use cases
+│   └── explorer.js
 ├── infrastructure/
-│   └── swapiClient.js        # SWAPI HTTP boundary
+│   ├── swapiClient.js
+│   └── starWarsArtworkClient.js
 ├── ui/
-│   ├── render.js             # DOM rendering only
-│   └── modal.js              # Modal behaviour only
-└── app.js                    # Composition root and browser event wiring
+│   ├── render.js
+│   └── modal.js
+└── app.js
 ```
 
-**Responsibilities**
+### Layer responsibilities
 
-| Layer | Owns | Does not own |
+| Layer | Responsibility |
+|---|---|
+| `domain` | Supported resources, display rules and sorting |
+| `application` | Resource loading and selection use cases |
+| `infrastructure` | External REST/API boundaries |
+| `ui` | DOM rendering and modal interaction |
+| `app.js` | Composition root and browser event wiring |
+
+This is intentionally pragmatic rather than a full enterprise DDD model. There are no aggregates or repositories because the application has no business need for them.
+
+## Artwork design
+
+`infrastructure/starWarsArtworkClient.js` is the single artwork adapter. Its public vocabulary describes the domain concern rather than the implementation detail of "REST":
+
+- `createStarWarsArtworkClient()`
+- `getArtworkImageCandidates(entity, resource)`
+- `getArtworkApiUrl(entity, resource)`
+- `getVisualGuideImageUrl(entity, resource)`
+- `clearCache()`
+
+### Character image flow
+
+SWAPI calls the resource `people`, while the artwork API and Visual Guide call it `characters`. That translation lives entirely in the infrastructure adapter:
+
+| SWAPI resource | Artwork resource | Visual Guide path |
 |---|---|---|
-| `domain` | What resources exist, how entities are named/sorted, which fields display | The DOM, HTTP |
-| `application` | Use-case coordination (load, select) | The DOM, `fetch` |
-| `infrastructure` | Calling SWAPI, via an injectable fetch function | Rendering, app state |
-| `ui` | Rendering data, modal open/close | Fetching data, app state |
-| `app.js` | Wiring browser events to use cases | Business logic, rendering logic |
+| `people` | `characters` | `characters/{id}.jpg` |
+| `films` | `films` | `films/{id}.jpg` |
+| `planets` | `planets` | `planets/{id}.jpg` |
+| `starships` | `starships` | `starships/{id}.jpg` |
 
-This is **DDD-inspired rather than a full DDD implementation** — a small app like this doesn't need repositories, aggregates or rich domain objects to benefit from the same underlying idea: keep what the app *knows* separate from how it *fetches* and how it *displays*.
+The adapter first requests curated `image_url` metadata from `https://swapi.thehiveresistance.com/api`. It then adds the deterministic Visual Guide URL as a fallback candidate. The UI loads candidates in order and advances to the next candidate if an image emits an `error` event.
 
-### Design decisions
+This is important for Characters: even when the metadata service has no character image, or its returned image URL is broken, the card/modal can still display the corresponding Visual Guide image.
 
-- **Why plain functions instead of classes?** Nothing here needs mutable identity or inheritance; closures and small pure functions keep behaviour easy to isolate and test.
-- **Why not a repository abstraction?** The only I/O is a GET request to SWAPI. `infrastructure/swapiClient.js` already isolates that boundary and accepts an injectable `fetch`, so tests run without the network — a repository layer on top would add indirection without solving a real problem here.
-- **Why one configuration object for four resource types?** Characters, films, planets and starships each have different fields but identical behaviour. A small per-resource config (in `domain/resources.js`) avoids four near-duplicate renderers while keeping the differences explicit and easy to extend.
-- **Why does `app.js` stay small?** It's the composition root — it wires DOM events to use cases and nothing else, so it doesn't grow into a controller that also knows how to render or fetch.
+Artwork lookups are cached by API request URL. Network failures and unsuccessful responses do not break rendering.
+
+## Clean-code refactor
+
+An earlier pass removed a set of duplicated modules (`src/js/api.js`, an older
+`render.js`/`modal.js`) so the application has one implementation per
+responsibility, and gave the artwork adapter a small, intention-revealing
+interface (`getArtworkImageCandidates()`) instead of exposing implementation
+details to the UI.
+
+A second pass, described here, focused on remaining smells inside the
+already-layered code: primitive obsession, duplicated guard logic, a
+validation call whose result was silently discarded, and hidden shared
+mutable state.
+
+| Smell | Where | Fix |
+|---|---|---|
+| Positional tuples (`['Height', 'height', ' cm']`) forced every reader to remember index 0/1/2 meant label/property/suffix | `domain/resources.js` | Replaced with a `field(label, property, suffix)` factory returning a named `{ label, property, suffix }` object |
+| A validation call's return value was fetched and thrown away purely for its side effect | `application/explorer.js` | Added `assertSupportedResource()` to the domain module; the explorer calls it explicitly instead of discarding `getResourceDefinition()`'s result |
+| State was set out of order: `selectedResource` was updated *before* the corresponding entities had actually loaded, so a mid-flight `getState()` call could report a resource with the previous resource's entities | `application/explorer.js` | Both fields are now written together after the fetch resolves |
+| An eight-line optional-chaining ladder guessed every provider's JSON shape one field at a time; adding a provider meant editing the chain | `infrastructure/starWarsArtworkClient.js` | Replaced with a declarative `IMAGE_URL_PATHS` list that's iterated — adding a provider shape is now a one-line addition |
+| Three URL builders each repeated "resolve the artwork resource name and entity id, bail if either is missing" | `infrastructure/starWarsArtworkClient.js` | Extracted a shared `resolveArtworkContext()` |
+| Modal open/close state (`backdrop`, `escapeHandler`) lived in module-level variables — a hidden global shared by every caller and every test | `ui/modal.js` | Converted to a `createModalController(modal)` factory; each modal instance owns its own state |
+| `app.js` repeated the "render results, render picker, disable the details button" sequence in both the success and error branches, and mixed dependency construction with event wiring | `app.js` | Extracted `renderEntityCollection()`; extracted `createSwapiExplorerApp({ explorer, artworkClient })` as an explicit composition root, so `app.js`'s module scope is just "build the app, start it if we're in a browser" |
+| `createImage`/`createFallbackImage` named the concept as "image" even though the module's own vocabulary elsewhere is "artwork" | `ui/render.js` | Renamed to `createArtworkElement`/`createFallbackArtwork` for consistency with the infrastructure layer's naming |
+
+The artwork adapter still follows a small-interface approach: the UI depends
+only on `getArtworkImageCandidates()`, while URL construction,
+provider-specific resource naming, ID extraction, caching and fallback
+policy remain inside infrastructure.
+
+## Testing strategy
+
+Tests cover:
+
+- Resource definitions, field shape and sorting, including the explicit `assertSupportedResource` guard
+- The explorer use case, including its rejection of an unsupported resource before any client call is made
+- SWAPI HTTP success, HTTP failure and network failure
+- Artwork resource mapping and URL construction
+- Character artwork resolution
+- Primary-image → Visual Guide fallback behaviour
+- Artwork caching
+- Card and modal image rendering
+- Safe DOM rendering
+- Modal controller behaviour, including that two controller instances don't share backdrop/escape state
+- Browser event wiring
+
+The artwork client accepts an injected `fetch`, making tests deterministic and independent of the live artwork API.
+
+## Data sources
+
+Application data comes from SWAPI.
+
+Artwork metadata comes from the deployed Star Wars artwork API used by the project, with the Star Wars Visual Guide used as a fallback image source.
 
 ## Project structure
 
@@ -118,9 +170,8 @@ This is **DDD-inspired rather than a full DDD implementation** — a small app l
 ├── index.html
 ├── package.json
 ├── vitest.config.js
-├── scripts/
-│   └── server.js
 ├── public/
+│   ├── favicon.svg
 │   └── images/
 ├── src/
 │   ├── css/
@@ -129,45 +180,26 @@ This is **DDD-inspired rather than a full DDD implementation** — a small app l
 │       ├── domain/resources.js
 │       ├── application/explorer.js
 │       ├── infrastructure/swapiClient.js
+│       ├── infrastructure/starWarsArtworkClient.js
 │       ├── ui/render.js
 │       ├── ui/modal.js
 │       └── app.js
 └── test/
     ├── domain.test.js
     ├── swapiClient.test.js
+    ├── artworkClient.test.js
     ├── application.test.js
     ├── render.test.js
     ├── modal.test.js
     └── app.test.js
 ```
 
-## What this project demonstrates
+## Character artwork resolution
 
-- REST API integration via `fetch`, with an injectable HTTP boundary for testability
-- Separation of concerns across domain / application / infrastructure / UI
-- DDD-inspired layering, applied pragmatically rather than dogmatically
-- Configuration over duplication for structurally-similar resource types
-- DOM manipulation and event delegation without a framework
-- Accessible, keyboard-operable UI (roles, `aria-*` attributes, focus states)
-- Loading and error handling as first-class UI states
-- Unit and DOM-integration testing with Vitest + jsdom
+Character cards and detail modals now resolve artwork from the dedicated `akabab/starwars-api` character endpoint (`/id/{id}.json`), whose character records expose an `image` field. This is intentionally separate from the SWAPI data source because the SWAPI people records do not provide image metadata. If that request fails or has no image, the renderer falls back to the Star Wars Visual Guide character asset.
 
-## With more time
+The artwork adapter therefore has this dependency flow:
 
-A few things I'd tackle next, given more than the ~2-hour scope of this task:
+`SWAPI people entity -> character artwork API -> image URL -> Visual Guide fallback -> UI fallback`
 
-- Pagination or infinite scroll instead of loading each resource in full
-- A search/filter box alongside the "Jump to…" picker for larger result sets
-- Resolving related-entity URLs (e.g. a character's homeworld or films) into readable links inside the modal
-- Client-side caching of already-fetched resources to avoid re-requesting on tab switches
-- A retry affordance on the error state, rather than requiring a manual tab reselect
-- TypeScript (or JSDoc types) at the `infrastructure`/`domain` boundary for stronger contracts
-
-## API
-
-Data is provided by [SWAPI](https://swapi.info). The application currently uses:
-
-- `/api/people`
-- `/api/films`
-- `/api/planets`
-- `/api/starships`
+This makes character image retrieval deterministic and prevents the character UI from depending on the unavailable/empty artwork metadata response that previously caused the cards and modal to show only the fallback icon.

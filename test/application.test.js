@@ -23,4 +23,12 @@ describe('createExplorer', () => {
     const explorer = createExplorer({ swapiClient: { get: vi.fn() } });
     expect(explorer.getSelectedEntity(99)).toBeNull();
   });
+
+  it('rejects an unsupported resource without calling the client', async () => {
+    const swapiClient = { get: vi.fn() };
+    const explorer = createExplorer({ swapiClient });
+
+    await expect(explorer.loadResource('droids')).rejects.toThrow('Unsupported resource: droids');
+    expect(swapiClient.get).not.toHaveBeenCalled();
+  });
 });

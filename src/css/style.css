@@ -66,17 +66,20 @@ body.modal-open { overflow: hidden; }
   border-bottom: 2px solid var(--gold);
   box-shadow: 0 1px 16px rgba(247, 201, 72, 0.35);
 }
-.header-status { flex-shrink: 0; display: flex; align-items: right; color: var(--muted); font-family: var(--font-display); font-size: 0.8rem; font-weight: 700; letter-spacing: 0.14em; }
+.header-status {
+  flex-shrink: 0; display: flex; align-items: center; gap: 8px; margin-left: auto;
+  color: var(--muted); font-family: var(--font-display); font-size: 0.8rem;
+  font-weight: 700; letter-spacing: 0.14em;
+  animation: live-status-blink 2.4s ease-in-out infinite;
+}
 .header-status span {
   display: inline-block; width: 7px; height: 7px; margin-right: 8px; border-radius: 50%;
   background: var(--green); box-shadow: 0 0 10px var(--green);
-  animation: pulse-dot 2.4s ease-in-out infinite;
 }
-.header-status {
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+
+@keyframes live-status-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
 }
 .header-inner { min-height: 68px; display: flex; align-items: center; padding-block: 12px; }
 .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
@@ -110,7 +113,7 @@ body.modal-open { overflow: hidden; }
   min-height: 42px;
   border: 1px solid var(--line); border-radius: var(--radius-sm);
   background: transparent; color: var(--text); cursor: pointer;
-  font: inherit; font-family: var(--font-body); font-weight: 600; font-size: 0.95rem;
+  font: inherit; font-weight: 600; font-size: 0.95rem;
   letter-spacing: 0.01em; padding: 9px 16px;
   transition: color 150ms ease, background-color 150ms ease, border-color 150ms ease,
     box-shadow 150ms ease, transform 150ms ease;
@@ -183,9 +186,6 @@ body.modal-open { overflow: hidden; }
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4);
 }
 
-/* The eyebrow resource label isn't part of this flatter card design. */
-.entity-type { display: none; }
-
 .entity-name {
   margin: 0 0 12px; font-weight: 700; font-size: 1.15rem; line-height: 1.2;
   letter-spacing: 0.01em; color: var(--gold); text-transform: uppercase;
@@ -218,12 +218,6 @@ body.modal-open { overflow: hidden; }
   font-size: 1.7rem;
 }
 
-.entity-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
 .entity-card-header .entity-type {
   display: block;
   grid-area: type;
@@ -246,6 +240,7 @@ body.modal-open { overflow: hidden; }
   font-size: 3rem;
 }
 
+.entity-image img,
 .details-image img {
   width: 100%;
   height: 100%;
@@ -253,7 +248,6 @@ body.modal-open { overflow: hidden; }
 }
 
 .entity-card-body { flex: 1; }
-.entity-card-footer { display: none; }
 
 .detail-row { display: block; padding: 3px 0; }
 .detail-label {

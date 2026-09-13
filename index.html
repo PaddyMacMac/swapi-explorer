@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Explore Star Wars characters, films, planets and starships using SWAPI.">
-  <meta name="theme-color" content="#05070b">
+  <meta name="theme-color" content="#0a0d13">
   <title>SWAPI Explorer</title>
   <link rel="icon" type="image/svg+xml" href="public/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -24,7 +24,7 @@
           <h1>SWAPI Explorer</h1>
         </div>
       </div>
-      <div class="header-status"><span></span> LIVE DATA</div>
+      <div class="header-status"><span aria-hidden="true"></span> LIVE DATA</div>
     </div>
   </header>
 
@@ -32,41 +32,40 @@
     <section class="hero">
       <p class="eyebrow">STAR WARS API</p>
       <h2>Explore a galaxy of data.</h2>
-      <p>Browse Star Wars Characters, Films, Planets and Starships.<br>
-         Select any card to inspect its details.</p>
+      <p>Browse Star Wars Characters, Films, Planets and Starships. Select any card to inspect its details.</p>
     </section>
 
     <section class="controls" aria-label="Resource controls">
       <div id="resource-tabs" class="resource-tabs" role="tablist" aria-label="Star Wars resources">
-        <button class="resource-tab active" data-resource="people" role="tab">
+        <button type="button" class="resource-tab active" data-resource="people" role="tab" aria-selected="true">
           <svg class="btn-icon" viewBox="0 0 16 16" aria-hidden="true">
             <circle cx="8" cy="5" r="2.6" />
             <path d="M3 14c0-2.8 2.2-5 5-5s5 2.2 5 5" />
           </svg>
-          <span>Characters</span>
+          Characters
         </button>
-        <button class="resource-tab" data-resource="films" role="tab"><svg class="btn-icon" viewBox="0 0 16 16"
+        <button type="button" class="resource-tab" data-resource="films" role="tab" aria-selected="false"><svg class="btn-icon" viewBox="0 0 16 16"
             aria-hidden="true">
             <rect x="2" y="4" width="12" height="9" rx="1" />
             <path d="M2 4l2.5-2h2L5 4M9 4l2.5-2h2L11 4" />
           </svg>
-          <span>Films</span></button>
-        <button class="resource-tab" data-resource="planets" role="tab"><svg class="btn-icon" viewBox="0 0 16 16"
+          Films</button>
+        <button type="button" class="resource-tab" data-resource="planets" role="tab" aria-selected="false"><svg class="btn-icon" viewBox="0 0 16 16"
             aria-hidden="true">
             <circle cx="8" cy="8" r="4.2" />
             <ellipse cx="8" cy="8" rx="7" ry="2.2" />
           </svg>
-          <span>Planets</span></button>
-        <button class="resource-tab" data-resource="starships" role="tab"><svg class="btn-icon" viewBox="0 0 16 16"
+          Planets</button>
+        <button type="button" class="resource-tab" data-resource="starships" role="tab" aria-selected="false"><svg class="btn-icon" viewBox="0 0 16 16"
             aria-hidden="true">
             <path d="M8 1.5c2 1.6 3 4 3 7.5 0 1.3-.3 2.4-.8 3.3H5.8c-.5-.9-.8-2-.8-3.3 0-3.5 1-5.9 3-7.5z" />
             <path d="M5.8 12.3 4 14.5M10.2 12.3 12 14.5" />
             <circle cx="8" cy="7" r="1.1" />
           </svg>
-          <span>Starships</span></button>
+          Starships</button>
       </div>
 
-      <div class="jump-control">
+      <div class="jump-control" role="group" aria-label="Entity details">
         <label for="entity-picker">Jump to</label>
         <select id="entity-picker" aria-label="Jump to a specific entry">
           <option value="" selected disabled>Choose an entry…</option>
@@ -76,7 +75,7 @@
             <path d="M1 8s2.8-4.5 7-4.5S15 8 15 8s-2.8 4.5-7 4.5S1 8 1 8z" />
             <circle cx="8" cy="8" r="2" />
           </svg>
-          <span>View details</span></button>
+          View details</button>
       </div>
     </section>
 
@@ -84,13 +83,13 @@
     <section id="results" class="results-grid" aria-live="polite"></section>
   </main>
 
-  <div class="modal" id="detailsModal" role="dialog" aria-modal="true" aria-labelledby="detailsModalLabel"
+  <div class="modal" id="detailsModal" role="dialog" aria-labelledby="detailsModalLabel"
     aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
           <div>
-            <p class="modal-kicker">ARCHIVED RECORD</p>
+            <p class="modal-kicker" id="detailsModalKicker"></p>
             <h2 id="detailsModalLabel"></h2>
           </div>
           <button type="button" class="modal-close" id="detailsModalCloseBtn" aria-label="Close">×</button>
@@ -101,13 +100,13 @@
               viewBox="0 0 16 16" aria-hidden="true">
               <path d="M3 3l10 10M13 3L3 13" />
             </svg>
-            <span>Close</span></button>
+            Close</button>
         </div>
       </div>
     </div>
   </div>
 
-  <script type="module" src="src/js/app.js"></script>
+  <script type="module" src="src/js/main.js"></script>
 </body>
 
 </html>

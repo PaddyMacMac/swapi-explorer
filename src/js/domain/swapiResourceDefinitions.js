@@ -6,7 +6,7 @@ export const UNKNOWN_VALUE = 'Unknown';
 
 const createFieldDescriptor = (label, property, suffix = '') => ({ label, property, suffix });
 
-const RESOURCE_DEFINITIONS = Object.freeze({
+const RESOURCE_DEFINITIONS = {
   people: {
     label: 'Characters',
     nameField: 'name',
@@ -78,7 +78,7 @@ const RESOURCE_DEFINITIONS = Object.freeze({
       createFieldDescriptor('Cargo capacity', 'cargo_capacity'),
     ],
   },
-});
+};
 
 export const isSupportedResource = resourceName =>
   typeof resourceName === 'string' && Object.hasOwn(RESOURCE_DEFINITIONS, resourceName);
